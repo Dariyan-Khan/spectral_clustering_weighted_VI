@@ -2,12 +2,14 @@ import numpy as np
 
 class Sigma_star():
 
-    def __init__(self, prior, k, d):
-        self.prior = prior # (scale matrix, degrees of freedom)
+    def __init__(self, prior_scale, prior_dof, k, d):
+        self.prior_scale = prior_scale # (scale matrix, degrees of freedom)
+        self.prior_dof = prior_dof
         self.k = k
         self.d = d
         self.dim = d - 1
-        self.params = None
+        self.scale = None
+        self.dof = None
     
     def X_i_matrix(self, r_i, μ_k, γ_k, norm_data): #norm data means that the data point is normalised
         X_i = np.zeros((self.dim, self.dim))
@@ -51,7 +53,7 @@ class Sigma_star():
 
 
 
-    def vi(self, z_vi_list, phi_vi_list, r_vi_list, μ_k, γ_k, datapoints):
+    def vi(self, phi_vi_list, r_vi_list, μ_k, γ_k, datapoints):
 
         scale_mat = self.prior[0]
         dof = self.prior[1]
@@ -61,7 +63,9 @@ class Sigma_star():
             scale_mat += phi[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
             dof += phi[self.k]
         
-        self.params = (scale_mat, dof)
+        self.scale = scale_mat
+        self.dof = dof
+        
 
 
 
