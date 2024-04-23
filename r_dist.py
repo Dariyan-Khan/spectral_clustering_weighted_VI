@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 
-class r_distribution():
+class r():
 
     def __init__(self, α, β, d):
         self.α = α
@@ -35,7 +35,7 @@ class r_distribution():
         return current
 
 if __name__ == "__main__":
-    r_dist = r_distribution(α=1, β=7, d=3)
+    r_dist = r(α=1, β=7, d=3)
     print(r_dist.first_moment)
     print(r_dist.second_moment)
 
