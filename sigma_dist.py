@@ -55,8 +55,8 @@ class Sigma_star():
 
     def vi(self, phi_vi_list, r_vi_list, μ_k, γ_k, datapoints):
 
-        scale_mat = self.prior[0]
-        dof = self.prior[1]
+        scale_mat = self.prior_scale
+        dof = self.prior_dof
 
         for (i, data) in enumerate(datapoints.normalised):
             phi = phi_vi_list[i]
@@ -65,7 +65,7 @@ class Sigma_star():
         
         self.scale = scale_mat
         self.dof = dof
-        
+
 
 
 
