@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import norm
+from .... import sigma_inv_approx
 
 class r():
 
@@ -33,6 +34,26 @@ class r():
         
         # The current variable now holds the value of I_d
         return current
+    
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_lsit, norm_datapoint):
+
+        sigma = sigma_star_vi_list[z_i.k]
+        γ = γ_vi_list[z_i.k]
+        μ = μ_vi_lsit[z_i.k]
+
+        sigma_inv = sigma_inv_approx(sigma, γ)
+
+        self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
+        self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
+
+        self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+        self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
+        self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
+
+
+
+
+
 
 if __name__ == "__main__":
     r_dist = r(α=1, β=7, d=3)

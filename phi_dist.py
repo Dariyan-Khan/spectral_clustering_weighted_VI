@@ -15,7 +15,7 @@ class phi():
 
         exp_els_in_cluster = self.prior_params
         for z, phi_vi in zip(z_vi_list, phi_vi_list):
-            exp_els_in_cluster[z.cluster] += phi_vi.params[z.cluster]
+            exp_els_in_cluster[z.k] += phi_vi.params[z.k]
         
         self.params = exp_els_in_cluster
         
