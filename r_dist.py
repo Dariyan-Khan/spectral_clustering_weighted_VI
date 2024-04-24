@@ -52,9 +52,6 @@ class r():
 
 
 
-
-
-
 if __name__ == "__main__":
     r_dist = r(α=1, β=7, d=3)
     print(r_dist.first_moment)
