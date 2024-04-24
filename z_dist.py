@@ -1,0 +1,45 @@
+import numpy as np
+from .... import sigma_inv_approx
+from scipy.special import digamma
+
+class z():
+    
+    def __init__(self, prior, d, K):
+        self.prior_probs = prior #initialise with random probabilities
+        self.K = K # number of classes
+        self.probs = None
+        self.d = d
+    
+    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, ϕ_i):
+
+        for k in range(self.K):
+            μ = μ_list[k]
+            sigma_star = sigma_star_list[k]
+            γ = γ_list[k]
+
+            P_k_1 = -0.5 * (
+                np.trace(
+                    (sigma_star.scale /sigma_star.dof - self.d) + \
+                    γ.cov + \
+                    γ.mean @ γ.mean.T   
+                ) - \
+                self.d 
+            )
+
+            Sigma_inv = sigma_inv_approx(sigma_star, γ)
+
+            P_k_2 = -0.5 * (
+                r_i.second_moment * norm_datapoint.T @ Sigma_inv @ norm_datapoint - \
+                2 * r_i.first_moment * norm_datapoint.T @ Sigma_inv @ μ.mean + \
+                np.trace((μ.mean @ μ.mean.T + μ.cov) @ Sigma_inv)
+            )
+            
+            P_k = P_k_1 + P_k_2
+
+            self.probs[k] = np.exp(P_k) * digamma(ϕ_i.conc[k]) / digamma(sum(ϕ_i.conc))
+
+        
+        self.probs = self.probs / sum(self.probs)
+
+            
+        

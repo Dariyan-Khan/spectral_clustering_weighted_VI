@@ -12,9 +12,9 @@ class phi():
     def vi(self, z_vi_list): # Need to pass in a list of z distributions for each point
 
         exp_els_in_cluster = self.prior_conc
-        for z in z_vi_list:
+        for z_i in z_vi_list:
             for k in range(self.K):
-                exp_els_in_cluster[k] += z.probs[k]
+                exp_els_in_cluster[k] += z_i.probs[k]
         
         self.conc = exp_els_in_cluster
         
