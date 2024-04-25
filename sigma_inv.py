@@ -12,7 +12,7 @@ def sigma_inv_approx(sigma_star, γ):
 
     def Sigma_expectation(sigma_star, γ):
 
-        A = (sigma_star.scale / (sigma_star.dof - d)) + γ.cov + γ.mean @ γ.mean.T
+        A = sigma_star.first_moment() + γ.cov + γ.mean @ γ.mean.T
         B = γ.mean
         C = 1.0
 
@@ -20,4 +20,6 @@ def sigma_inv_approx(sigma_star, γ):
 
 
     def Sigma_sq_expectation_(sigma_star, γ):
+
+        
          

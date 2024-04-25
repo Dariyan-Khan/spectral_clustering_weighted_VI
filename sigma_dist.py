@@ -10,6 +10,7 @@ class Sigma_star():
         self.dim = d - 1
         self.scale = None
         self.dof = None
+        self.first_moment = None
     
     def X_i_matrix(self, r_i, μ_k, γ_k, norm_data): #norm data means that the data point is normalised
         X_i = np.zeros((self.dim, self.dim))
@@ -65,6 +66,22 @@ class Sigma_star():
         
         self.scale = scale_mat
         self.dof = dof
+
+        self.first_moment = self.first_mom()
+        self.second_moment = self.second_mom()
+
+    
+    def first_mom(self):
+        return self.scale / (self.dof - self.d)
+    
+    def second_mom(self):
+        assert self.dof > self.d + 2, "Degrees of freedom must be greater than d + 2 for second moment formula"
+
+        c_2 = 1 / ((self.dof - self.d +1) * (self.dof - self.d) * (self.dof - self.d - 2))
+
+        c_1 = (self.dof - self.d - 1) * c_2
+
+        return (c_1+c_2) * (self.scale @ self.scale) + c_2 * np.trace(self.scale) * self.scale
 
 
 
