@@ -1,21 +1,19 @@
 import numpy as np
 from scipy.linalg import orthogonal_procrustes
-import tqdm
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+from tqdm import tqdm
 
 class  Dataset():
     
-    def __init__(self, adj_mat, emb_dim, K):
+    def __init__(self, adj_mat, emb_dim, K=None):
         self.adj_mat = adj_mat
         self.d = emb_dim
-        # self.normalised = self.normalise_data()
+        self.N = len(adj_mat)
         self.K = K
-
-
-    # def normalise_data(self):
-    #     normalised_data = []
-    #     for data_point in self.data:
-    #         normalised_data.append(data_point / np.linalg.norm(data_point))
-    #     return normalised_data
+        self.embds = self.spectral_emb() # of size (N, self.d) where N is the number of samples
+        self.normed_embds = self.embds / np.linalg.norm(self.embds, axis=1)[:, np.newaxis]
+        
     
     def spectral_emb(self):
         eigvals, eigvecs = np.linalg.eig(self.adj_mat)
@@ -28,10 +26,40 @@ class  Dataset():
         spectral_embedding = eigvecs_trunc @ eigvals_trunc
         return spectral_embedding
     
+    def k_means_init(self, clusters_to_check=list(range(2, 11))):
+        # Initialize K centroids by randomly selecting K points from the dataset
 
+        best_silh_score = -10
+        best_num_clusters = 1
+        best_k_means = None
 
+        for n in tqdm(clusters_to_check, desc="Performing KMeans"):
 
+            kmeans = KMeans(n_clusters=n, random_state=42)  # random_state for reproducibility
 
+            kmeans_fitted = kmeans.fit(self.embds)
+
+            curr_silh_score = silhouette_score(self.embds, kmeans_fitted.predict(self.embds))
+
+            if curr_silh_score > best_silh_score:
+                best_silh_score = curr_silh_score
+                best_num_clusters = n
+                best_k_means = kmeans_fitted
+        
+        
+        return best_k_means, best_num_clusters
+    
+
+    
+    def datasset_vi(self):
+
+        if self.K is None:
+            best_k_means, best_num_clusters = self.k_means_init(clusters_to_check=list(range(2, min(11, self.N))))
+            self.K = best_num_clusters
+        
+        else:
+            kmeans = KMeans(n_clusters=self.K, random_state=42)  # random_state for reproducibility
+            best_k_means = kmeans.fit(self.embds)
 
 class Synthetic_data(Dataset):
 
@@ -156,4 +184,4 @@ if __name__ == '__main__':
         K=2
     )
 
-    print(ds.spectral_emb())
+    print(ds.k_means_init())

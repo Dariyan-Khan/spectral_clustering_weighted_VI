@@ -1,5 +1,5 @@
 import numpy as np
-from .... import sigma_inv_approx
+from sigma_inv import sigma_inv_approx
 from scipy.special import digamma
 
 class z():
