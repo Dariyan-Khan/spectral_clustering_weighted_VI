@@ -3,27 +3,47 @@ from sigma_inv import sigma_inv_approx
 
 class mu():
 
-    def __init__(self, prior_mean, prior_cov, k, d):
-        self.prior_mean = prior_mean # (mean, covariance matrix)
-        self.prior_cov = prior_cov
+    def __init__(self, k, d, prior_mean=None, prior_cov=None):
         self.k = k
         self.d = d
         self.mean = None
         self.cov = None
+
+        if prior_mean is not None:
+            self.mean = prior_mean
+        
+        else:
+            self.prior_mean = np.zeros(self.d)
+        
+        if prior_cov is not None:
+            self.prior_cov = prior_cov
+        
+        else:
+            pass
+            #self.prior_cov = np.eye(self.d)
+
     
+
     def vi(self, phi_vi_list, r_vi_list, sigma_star_k, γ_k, datapoints):
+
+        n_k = 0
+        B = 0
 
         mean_vec = np.zeros(self.d)
         cov_mat = np.zeros((self.d, self.d))
 
         for (i, data) in enumerate(datapoints.normalised):
             phi = phi_vi_list[i]
-            mean_vec += r_vi_list[i].first_moment * phi[self.k] * data
-        
-        cov_mat = np.linalg.inv(sigma_inv_approx(sigma_star_k, γ_k))
 
-        self.mean = mean_vec
-        self.cov = cov_mat
+            n_k += phi[self.k]
+            B += r_vi_list[i].first_moment * phi[self.k] * data
+        
+        A = sigma_inv_approx(sigma_star_k, γ_k)*n_k + np.linalg.inv(self.prior_cov)
+        A_inv = np.linalg.inv(A)
+    
+
+        self.mean = A_inv @ B 
+        self.cov = A_inv
 
 
     

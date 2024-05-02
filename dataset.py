@@ -13,6 +13,14 @@ class  Dataset():
         self.K = K
         self.embds = self.spectral_emb() # of size (N, self.d) where N is the number of samples
         self.normed_embds = self.embds / np.linalg.norm(self.embds, axis=1)[:, np.newaxis]
+        self.best_k_means = None
+        self.generate_best_k_means()
+
+        
+
+
+
+
         
     
     def spectral_emb(self):
@@ -51,7 +59,7 @@ class  Dataset():
     
 
     
-    def datasset_vi(self):
+    def generate_best_k_means(self):
 
         if self.K is None:
             best_k_means, best_num_clusters = self.k_means_init(clusters_to_check=list(range(2, min(11, self.N))))
@@ -60,6 +68,10 @@ class  Dataset():
         else:
             kmeans = KMeans(n_clusters=self.K, random_state=42)  # random_state for reproducibility
             best_k_means = kmeans.fit(self.embds)
+        
+        self.best_k_means = best_k_means
+        
+
 
 class Synthetic_data(Dataset):
 
@@ -140,27 +152,6 @@ class Synthetic_data(Dataset):
         best_orthog_mat = orthogonal_procrustes(spectral_embedding, true_means)
         spectral_embedding = spectral_embedding @ best_orthog_mat[0]
         return spectral_embedding
-
-    # def spectral_emb(self, μ_1, μ_2, prior, N_t=1000):
-    #     μ_mat = np.stack((μ_1, μ_2), axis=1)
-    #     adj_mat, bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
-    #     eigvals, eigvecs = np.linalg.eig(adj_mat)
-    #     sorted_indexes = np.argsort(np.abs(eigvals))[::-1]
-    #     eigvals = eigvals[sorted_indexes]
-    #     eigvecs = eigvecs[:,sorted_indexes]
-    #     embedding_dim = self.d
-    #     eigvecs_trunc = eigvecs[:,:2]
-    #     eigvals_trunc = np.diag(np.sqrt(np.abs(eigvals[:2])))
-    #     spectral_embedding = eigvecs_trunc @ eigvals_trunc
-    #     true_means = np.zeros((N_t, 2))
-
-    #     for i in range(N_t):
-    #         ρ_i, μ_i = bern_params[i][0], μ_mat[:, bern_params[i][1]]
-    #         true_means[i, :] =  ρ_i * μ_i
-
-    #     best_orthog_mat = orthogonal_procrustes(spectral_embedding, true_means)
-    #     spectral_embedding = spectral_embedding @ best_orthog_mat[0]
-    #     return spectral_embedding
 
 
 if __name__ == '__main__':
