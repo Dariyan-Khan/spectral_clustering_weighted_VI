@@ -1,12 +1,23 @@
 import numpy as np
 from scipy.stats import norm
-from .... import sigma_inv_approx
+from sigma_inv import sigma_inv_approx
 
-class r():
+class R():
 
-    def __init__(self, α, β, d):
-        self.α = α
-        self.β = β
+    def __init__(self, d, α=None, β=None):
+
+        if α is None:
+            self.α = 1
+        
+        else:
+            self.α = α
+        
+        if β is None:
+            self.β = 1
+        
+        else:
+            self.β = β
+
         self.d = d
         self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
         self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const

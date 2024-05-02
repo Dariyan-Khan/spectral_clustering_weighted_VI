@@ -1,10 +1,21 @@
 import numpy as np
 
-class Sigma_star():
+class Sigma_Star():
 
-    def __init__(self, prior_scale, prior_dof, k, d):
-        self.prior_scale = prior_scale # (scale matrix, degrees of freedom)
-        self.prior_dof = prior_dof
+    def __init__(self, k, d, prior_scale=None, prior_dof=None):
+
+        if prior_scale is None:
+            self.prior_scale = np.eye(d-1)
+        
+        else:
+            self.prior_scale = prior_scale # (scale matrix, degrees of freedom)
+        
+        if prior_dof is None:
+            self.prior_dof = d + 1
+        
+        else:
+            self.prior_dof = prior_dof
+
         self.k = k
         self.d = d
         self.dim = d - 1

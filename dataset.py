@@ -4,6 +4,15 @@ from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from tqdm import tqdm
 
+from mu_dist import Mu
+from sigma_dist import Sigma_Star
+from gamma_dist import Gamma
+
+from r_dist import R
+from z_dist import Z
+from phi_dist import Phi
+
+
 class  Dataset():
     
     def __init__(self, adj_mat, emb_dim, K=None):
@@ -16,13 +25,16 @@ class  Dataset():
         self.best_k_means = None
         self.generate_best_k_means()
 
-        
+        self.means_vars = [Mu(i) for i in range(self.K)]
+        self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
+        self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
+ 
+        self.r_vars = [R(self.d) for _ in range(self.N)]
+        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.phi_vars = [Phi(self.K) for _ in range(self.N)]
 
 
-
-
-        
-    
+            
     def spectral_emb(self):
         eigvals, eigvecs = np.linalg.eig(self.adj_mat)
         sorted_indexes = np.argsort(np.abs(eigvals))[::-1]
@@ -175,4 +187,7 @@ if __name__ == '__main__':
         K=2
     )
 
-    print(ds.k_means_init())
+    b_k_means = ds.best_k_means
+
+    print(b_k_means.cluster_centers_)
+    print(b_k_means.labels_)

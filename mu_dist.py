@@ -1,7 +1,7 @@
 import numpy as np
 from sigma_inv import sigma_inv_approx
 
-class mu():
+class Mu():
 
     def __init__(self, k, d, prior_mean=None, prior_cov=None):
         self.k = k
@@ -19,8 +19,7 @@ class mu():
             self.prior_cov = prior_cov
         
         else:
-            pass
-            #self.prior_cov = np.eye(self.d)
+            self.prior_cov = np.eye(self.d)
 
     
 
@@ -29,8 +28,7 @@ class mu():
         n_k = 0
         B = 0
 
-        mean_vec = np.zeros(self.d)
-        cov_mat = np.zeros((self.d, self.d))
+    
 
         for (i, data) in enumerate(datapoints.normalised):
             phi = phi_vi_list[i]

@@ -2,10 +2,16 @@ import numpy as np
 from sigma_inv import sigma_inv_approx
 from scipy.special import digamma
 
-class z():
+class Z():
     
-    def __init__(self, prior, d, K):
-        self.prior_probs = prior #initialise with random probabilities
+    def __init__(self, d, K, prior=None):
+
+        if prior is None:
+            self.prior_probs = [1/K for _ in range(K)]
+            
+        else:
+            self.prior_probs = prior #initialise with random probabilities
+
         self.K = K # number of classes
         self.probs = None
         self.d = d

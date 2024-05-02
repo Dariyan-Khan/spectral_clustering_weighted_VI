@@ -1,8 +1,12 @@
 import numpy as np
 
-class phi():
+class Phi():
 
-    def __init__(self, α_prior, K):
+    def __init__(self, K, α_prior=None):
+        
+        if α_prior is None:
+            α_prior = 1
+        
         self.prior_conc = [α_prior/K for _ in range(K)] #conc= concentration parameter
         self.conc = None
         self.K = K # number of classes

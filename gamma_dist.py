@@ -1,17 +1,27 @@
 import numpy as np
 
 
-class mu():
+class Gamma():
 
-    def __init__(self, prior_mean, prior_cov, k, d):
-        self.prior_mean = prior_mean # (mean, covariance matrix)
-        self.prior_cov = prior_cov
+    def __init__(self, k, d, prior_mean=None, prior_cov=None):
         self.k = k
         self.d = d
         self.dim = d - 1
         self.mean = None
         self.cov = None
         self.outer_prod = None
+
+        if prior_mean is not None:
+            self.mean = prior_mean
+        
+        else:
+            self.mean = np.zeros(self.dim)
+        
+        if prior_cov is not None:
+            self.prior_cov = prior_cov
+        
+        else:
+            self.prior_cov = np.eye(self.dim)
     
     def vi(self, phi_vi_list, r_vi_list, sigma_star_k, μ_k, datapoints):
 
