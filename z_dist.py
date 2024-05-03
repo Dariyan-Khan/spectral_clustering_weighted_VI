@@ -15,6 +15,7 @@ class Z():
         self.K = K # number of classes
         self.probs = None
         self.d = d
+        
     
     def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, ϕ_i):
 

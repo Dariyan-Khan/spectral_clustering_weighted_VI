@@ -23,23 +23,23 @@ class Gamma():
         else:
             self.prior_cov = np.eye(self.dim)
     
-    def vi(self, phi_vi_list, r_vi_list, sigma_star_k, μ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, datapoints):
 
         mean_vec = np.zeros(self.dim)
         cov_mat = np.zeros((self.dim, self.dim))
         cov_mat_inner = np.zeros((self.dim, self.dim))
         
         for (i, data) in enumerate(datapoints.normed_embds):
-            phi = phi_vi_list[i]
+            z = z_vi_list[i]
 
-            cov_mat_inner += phi[self.k] * (
+            cov_mat_inner += z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d]**2 - \
                 2 * r_vi_list[i].first_moment * data[self.d]*μ_k[self.d] + \
                 μ_k.mean[self.d]**2 + \
                 μ_k.cov[self.d, self.d]
             )
 
-            mean_vec += phi[self.k] * (
+            mean_vec += z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d] * data[:self.d] - \
                 r_vi_list[i].first_moment * data[self.d] * μ_k.mean[:self.d] - \
                 r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d] + \

@@ -31,7 +31,7 @@ class Dataset():
  
         self.r_vars = [R(self.d) for _ in range(self.N)]
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
-        self.phi_vars = [Phi(self.K) for _ in range(self.N)]
+        self.phi_var = Phi(self.K)
 
             
     def spectral_emb(self):
@@ -73,20 +73,15 @@ class Dataset():
         for _ in tqdm(range(max_iter), desc="Performing VI"):
 
             for k in range(self.K):
-                self.means_vars[k].vi(self.phi_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
-                self.sigma_star_vars[k].vi(self.phi_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
-                self.gamma_vars[k].vi(self.phi_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_vars[i])
                 self.phi_vars[i].vi(self.z_vars)
-            
-            
-        
 
-
-    
 
     
     def generate_best_k_means(self):

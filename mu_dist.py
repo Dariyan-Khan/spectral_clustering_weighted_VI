@@ -23,7 +23,7 @@ class Mu():
 
     
 
-    def vi(self, phi_vi_list, r_vi_list, sigma_star_k, γ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, datapoints):
 
         n_k = 0
         B = 0
@@ -31,10 +31,10 @@ class Mu():
     
 
         for (i, data) in enumerate(datapoints.normed_embds):
-            phi = phi_vi_list[i]
+            z = z_vi_list[i]
 
-            n_k += phi[self.k]
-            B += r_vi_list[i].first_moment * phi[self.k] * data
+            n_k += z.probs[self.k]
+            B += r_vi_list[i].first_moment * z.probs[self.k] * data
         
         A = sigma_inv_approx(sigma_star_k, γ_k)*n_k + np.linalg.inv(self.prior_cov)
         A_inv = np.linalg.inv(A)

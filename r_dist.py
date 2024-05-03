@@ -46,11 +46,12 @@ class R():
         # The current variable now holds the value of I_d
         return current
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_lsit, norm_datapoint):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, norm_datapoint):
 
-        sigma = sigma_star_vi_list[z_i.k]
-        γ = γ_vi_list[z_i.k]
-        μ = μ_vi_lsit[z_i.k]
+        data_group = np.argmax(z_i.probs)
+        sigma = sigma_star_vi_list[data_group]
+        γ = γ_vi_list[data_group]
+        μ = μ_vi_list[data_group]
 
         sigma_inv = sigma_inv_approx(sigma, γ)
 
