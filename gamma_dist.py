@@ -29,7 +29,7 @@ class Gamma():
         cov_mat = np.zeros((self.dim, self.dim))
         cov_mat_inner = np.zeros((self.dim, self.dim))
         
-        for (i, data) in enumerate(datapoints.normalised):
+        for (i, data) in enumerate(datapoints.normed_embds):
             phi = phi_vi_list[i]
 
             cov_mat_inner += phi[self.k] * (

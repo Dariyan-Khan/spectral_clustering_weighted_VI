@@ -13,7 +13,7 @@ from z_dist import Z
 from phi_dist import Phi
 
 
-class  Dataset():
+class Dataset():
     
     def __init__(self, adj_mat, emb_dim, K=None):
         self.adj_mat = adj_mat
@@ -32,7 +32,6 @@ class  Dataset():
         self.r_vars = [R(self.d) for _ in range(self.N)]
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
         self.phi_vars = [Phi(self.K) for _ in range(self.N)]
-
 
             
     def spectral_emb(self):
@@ -68,6 +67,25 @@ class  Dataset():
         
         
         return best_k_means, best_num_clusters
+    
+    def dataset_vi(self, max_iter=1000):
+
+        for _ in tqdm(range(max_iter), desc="Performing VI"):
+
+            for k in range(self.K):
+                self.means_vars[k].vi(self.phi_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
+                self.sigma_star_vars[k].vi(self.phi_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
+                self.gamma_vars[k].vi(self.phi_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
+
+            for i in range(self.N):
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_vars[i])
+                self.phi_vars[i].vi(self.z_vars)
+            
+            
+        
+
+
     
 
     

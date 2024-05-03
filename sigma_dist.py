@@ -70,7 +70,7 @@ class Sigma_Star():
         scale_mat = self.prior_scale
         dof = self.prior_dof
 
-        for (i, data) in enumerate(datapoints.normalised):
+        for (i, data) in enumerate(datapoints.normed_embds):
             phi = phi_vi_list[i]
             scale_mat += phi[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
             dof += phi[self.k]

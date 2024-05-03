@@ -30,7 +30,7 @@ class Mu():
 
     
 
-        for (i, data) in enumerate(datapoints.normalised):
+        for (i, data) in enumerate(datapoints.normed_embds):
             phi = phi_vi_list[i]
 
             n_k += phi[self.k]
