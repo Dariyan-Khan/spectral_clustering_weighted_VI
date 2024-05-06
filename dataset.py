@@ -1,7 +1,9 @@
 import numpy as np
 from scipy.linalg import orthogonal_procrustes
+
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
+
 from tqdm import tqdm
 
 from mu_dist import Mu
@@ -11,6 +13,8 @@ from gamma_dist import Gamma
 from r_dist import R
 from z_dist import Z
 from phi_dist import Phi
+
+from dataset_initialisation import GMM_Init
 
 
 class Dataset():
@@ -25,7 +29,7 @@ class Dataset():
         self.best_k_means = None
         self.generate_best_k_means()
 
-        self.means_vars = [Mu(i) for i in range(self.K)]
+        self.means_vars = [Mu(i, self.d) for i in range(self.K)]
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
@@ -44,6 +48,30 @@ class Dataset():
         eigvals_trunc = np.diag(np.sqrt(np.abs(eigvals[:embedding_dim])))
         spectral_embedding = eigvecs_trunc @ eigvals_trunc
         return spectral_embedding
+    
+    def gaussian_mm_init(self):
+
+        # gmm = GaussianMixture(n_components=self.K, covariance_type='full')
+        # # Fit the model 
+        # gmm.fit(self.normed_embds)
+
+        # covariance_matrices = gmm.covariances_
+
+        curr_gmm = GMM_Init(self.normed_embds, n_components=self.K)
+
+        mu_cov = curr_gmm.mu_cov_estimate()
+        gamma_cov = curr_gmm.gamma_estimate()
+        scale_mat, dof = curr_gmm.sigma_estimate()
+
+        for k in range(self.K):
+            self.means_vars[k].cov = mu_cov
+
+            self.sigma_star_vars[k].scale = scale_mat
+            self.sigma_star_vars[k].dof = dof
+                
+
+            self.gamma_vars[k].cov = gamma_cov
+
     
     def k_means_init(self, clusters_to_check=list(range(2, 11))):
         # Initialize K centroids by randomly selecting K points from the dataset
@@ -100,7 +128,7 @@ class Dataset():
 
 class Synthetic_data(Dataset):
 
-    def __init__(self, adj_mat, μ_1, μ_2, prior, N_t=1000):
+    def __init__(self, μ_1, μ_2, prior, N_t=1000):
         # prior has to be a function which takes no arguments and spits out a sample
 
         assert len(μ_1) == 2, "μ_1 and μ_2 have to be a 2D vector"
@@ -111,7 +139,7 @@ class Synthetic_data(Dataset):
         self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
         self.N_t=N_t # number of data points
 
-        super().__init__(adj_mat, 2, 2)
+        super().__init__(self.adj_mat, 2, 2)
 
 
     def find_delta_inv(self, μ_1, μ_2, exp_rho):
@@ -200,7 +228,15 @@ if __name__ == '__main__':
         K=2
     )
 
-    b_k_means = ds.best_k_means
+    ds.gaussian_mm_init()
 
-    print(b_k_means.cluster_centers_)
-    print(b_k_means.labels_)
+    print(ds.means_vars[0].cov)
+    print(ds.sigma_star_vars[0].scale, ds.sigma_star_vars[0].dof)
+    print(ds.gamma_vars[0].cov)
+
+    #ds.dataset_vi(max_iter=10)
+
+    # b_k_means = ds.best_k_means
+
+    # print(b_k_means.cluster_centers_)
+    

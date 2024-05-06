@@ -36,7 +36,7 @@ class Sigma_Star():
                 
                 second_term = γ_k.mean[l] * (
                     r_i.second_moment * norm_data[self.d] * norm_data[m] - \
-                    r_i.first_moment * norm_data[self.d] * μ_k.mean[m] - \ 
+                    r_i.first_moment * norm_data[self.d] * μ_k.mean[m] - \
                     r_i.first_moment * norm_data[m] * μ_k.mean[self.d] + \
                     μ_k.mean[m] * μ_k.mean[self.d] + \
                     μ_k.cov[m, self.d]
@@ -44,7 +44,7 @@ class Sigma_Star():
     
                 third_term = γ_k.mean[m] * (
                     r_i.second_moment * norm_data[self.d] * norm_data[l] - \
-                    r_i.first_moment * norm_data[self.d] * μ_k.mean[l] - \ 
+                    r_i.first_moment * norm_data[self.d] * μ_k.mean[l] - \
                     r_i.first_moment * norm_data[l] * μ_k.mean[self.d] + \
                     μ_k.mean[l] * μ_k.mean[self.d] + \
                     μ_k.cov[l, self.d]

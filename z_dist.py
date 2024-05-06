@@ -13,9 +13,9 @@ class Z():
             self.prior_probs = prior #initialise with random probabilities
 
         self.K = K # number of classes
-        self.probs = None
+        self.probs = [1/K for _ in range(K)]
         self.d = d
-        
+
     
     def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, ϕ_i):
 
