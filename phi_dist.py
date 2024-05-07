@@ -8,7 +8,7 @@ class Phi():
             α_prior = 1
         
         self.prior_conc = [α_prior/K for _ in range(K)] #conc= concentration parameter
-        self.conc = None
+        self.conc = [α_prior/K for _ in range(K)] #at least just for initialisation
         self.K = K # number of classes
 
         assert len(self.prior_conc) == self.K, "Number of classes must match number of prior parameters"

@@ -9,7 +9,6 @@ class Gamma():
         self.dim = d - 1
         self.mean = None
         self.cov = None
-        self.outer_prod = None
 
         if prior_mean is not None:
             self.mean = prior_mean
@@ -33,17 +32,49 @@ class Gamma():
             z = z_vi_list[i]
 
             cov_mat_inner += z.probs[self.k] * (
-                r_vi_list[i].second_moment * data[self.d]**2 - \
-                2 * r_vi_list[i].first_moment * data[self.d]*μ_k[self.d] + \
-                μ_k.mean[self.d]**2 + \
-                μ_k.cov[self.d, self.d]
+                r_vi_list[i].second_moment * data[self.d-1]**2 - \
+                2 * r_vi_list[i].first_moment * data[self.d-1]*μ_k.mean[self.d-1] + \
+                μ_k.mean[self.d-1]**2 + \
+                μ_k.cov[self.d-1, self.d-1]
             )
 
+            # print("line 41 gamma disst")
+
+            # print(data.shape, μ_k.mean.shape, r_vi_list[i].second_moment.shape, r_vi_list[i].first_moment.shape)
+            # print(data[:self.d].shape, μ_k.mean[:self.d].shape)
+
+            # print(r_vi_list[i].second_moment * data[self.d-1] * data[:self.d])
+            # print(r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d])
+            # print(r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1])
+            # print(μ_k.mean[:self.d] * μ_k.mean[self.d-1])
+
+            # print(z.probs[self.k] * (
+            #     r_vi_list[i].second_moment * data[self.d-1] * data[:self.d] - \
+            #     r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d] - \
+            #     r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1] + \
+            #     μ_k.mean[:self.d] * μ_k.mean[self.d-1]
+            # ))
+
+            # print(mean_vec.shape)
+
+            # a = r_vi_list[i].second_moment * data[self.d-1] * data[:self.d]
+            # print(f"==>> a.shape: {a.shape}")
+
+            # b = r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d]
+            # print(f"==>> b.shape: {b.shape}")
+
+            # c = r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1]
+            # print(f"==>> c.shape: {c.shape}")
+
+            # d = μ_k.mean[:self.d] * μ_k.mean[self.d-1]
+            # print(f"==>> d.shape: {d.shape}")
+
+            # I think need to change :self.d to:self.d - 1
             mean_vec += z.probs[self.k] * (
-                r_vi_list[i].second_moment * data[self.d] * data[:self.d] - \
-                r_vi_list[i].first_moment * data[self.d] * μ_k.mean[:self.d] - \
-                r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d] + \
-                μ_k.mean[:self.d] * μ_k.mean[self.d]
+                r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
+                r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
+                r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \
+                μ_k.mean[:self.d-1] * μ_k.mean[self.d-1]
             )
 
 
@@ -57,13 +88,13 @@ class Gamma():
 
         self.mean = self.cov @ mean_vec
 
-        self.outer_prod = self.outer_prod()
+        self.outer_product = self.outer_prod()
 
         self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
 
-        self.triple_gamma = self.three_gama()
+        # self.triple_gamma = self.three_gama()
 
-        self.quad_gamma = self.quadruple_gamma()
+        # self.quad_gamma = self.quadruple_gamma()
     
 
     def outer_prod(self):
@@ -90,6 +121,9 @@ class Gamma():
 
 
     def quadruple_gamma(self):
+
+        self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
+
         quad_mat =  np.zeros((self.dim, self.dim))
 
         col_vars = np.tile(np.diag(self.cov).reshape(1, self.dim), (self.dim, 1)) # if we change rows, should stay the same 
@@ -101,7 +135,7 @@ class Gamma():
         A_sq_mat = A_mat**2
 
         col_mu = np.tile(self.mean.reshape(1,self.dim), (self.dim,1))
-        row_mu = row_mu.T
+        row_mu = col_mu.T
 
         B_mat = 2 * A_mat * (row_mu - col_mu*A_mat)
         np.fill_diagonal(B_mat, 0)

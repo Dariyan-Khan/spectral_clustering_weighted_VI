@@ -17,7 +17,7 @@ class Z():
         self.d = d
 
     
-    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, ϕ_i):
+    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi):
 
         for k in range(self.K):
             μ = μ_list[k]
@@ -43,7 +43,7 @@ class Z():
             
             P_k = P_k_1 + P_k_2
 
-            self.probs[k] = np.exp(P_k) * digamma(ϕ_i.conc[k]) / digamma(sum(ϕ_i.conc))
+            self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) / digamma(sum(phi.conc))
 
         
         self.probs = self.probs / sum(self.probs)

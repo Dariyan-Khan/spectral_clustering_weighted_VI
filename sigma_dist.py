@@ -35,26 +35,26 @@ class Sigma_Star():
                             μ_k.cov[l, m]
                 
                 second_term = γ_k.mean[l] * (
-                    r_i.second_moment * norm_data[self.d] * norm_data[m] - \
-                    r_i.first_moment * norm_data[self.d] * μ_k.mean[m] - \
-                    r_i.first_moment * norm_data[m] * μ_k.mean[self.d] + \
-                    μ_k.mean[m] * μ_k.mean[self.d] + \
-                    μ_k.cov[m, self.d]
+                    r_i.second_moment * norm_data[self.d-1] * norm_data[m] - \
+                    r_i.first_moment * norm_data[self.d-1] * μ_k.mean[m] - \
+                    r_i.first_moment * norm_data[m] * μ_k.mean[self.d-1] + \
+                    μ_k.mean[m] * μ_k.mean[self.d-1] + \
+                    μ_k.cov[m, self.d-1]
                 )
     
                 third_term = γ_k.mean[m] * (
-                    r_i.second_moment * norm_data[self.d] * norm_data[l] - \
-                    r_i.first_moment * norm_data[self.d] * μ_k.mean[l] - \
-                    r_i.first_moment * norm_data[l] * μ_k.mean[self.d] + \
-                    μ_k.mean[l] * μ_k.mean[self.d] + \
-                    μ_k.cov[l, self.d]
+                    r_i.second_moment * norm_data[self.d-1] * norm_data[l] - \
+                    r_i.first_moment * norm_data[self.d-1] * μ_k.mean[l] - \
+                    r_i.first_moment * norm_data[l] * μ_k.mean[self.d-1] + \
+                    μ_k.mean[l] * μ_k.mean[self.d-1] + \
+                    μ_k.cov[l, self.d-1]
                 )
     
                 fourth_term = (γ_k.mean[l] * γ_k.mean[m] + γ_k.cov[l, m]) * (
-                    r_i.second_moment * norm_data[self.d]**2 - \
-                    2 * r_i.first_moment * norm_data[self.d] * μ_k.mean[self.d] + \
-                    μ_k.mean[self.d]**2 + \
-                    μ_k.cov[self.d, self.d]
+                    r_i.second_moment * norm_data[self.d-1]**2 - \
+                    2 * r_i.first_moment * norm_data[self.d-1] * μ_k.mean[self.d-1] + \
+                    μ_k.mean[self.d-1]**2 + \
+                    μ_k.cov[self.d-1, self.d-1]
                 )
 
                 X_i[l, m] = first_term - second_term - third_term + fourth_term
@@ -65,15 +65,15 @@ class Sigma_Star():
 
 
 
-    def vi(self, phi_vi_list, r_vi_list, μ_k, γ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, datapoints):
 
         scale_mat = self.prior_scale
         dof = self.prior_dof
 
         for (i, data) in enumerate(datapoints.normed_embds):
-            phi = phi_vi_list[i]
-            scale_mat += phi[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
-            dof += phi[self.k]
+            z = z_vi_list[i]
+            scale_mat += z.probs[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
+            dof += z.probs[self.k]
         
         self.scale = scale_mat
         self.dof = dof

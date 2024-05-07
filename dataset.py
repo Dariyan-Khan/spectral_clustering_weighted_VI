@@ -27,7 +27,6 @@ class Dataset():
         self.embds = self.spectral_emb() # of size (N, self.d) where N is the number of samples
         self.normed_embds = self.embds / np.linalg.norm(self.embds, axis=1)[:, np.newaxis]
         self.best_k_means = None
-        self.generate_best_k_means()
 
         self.means_vars = [Mu(i, self.d) for i in range(self.K)]
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
@@ -36,6 +35,7 @@ class Dataset():
         self.r_vars = [R(self.d) for _ in range(self.N)]
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
         self.phi_var = Phi(self.K)
+
 
             
     def spectral_emb(self):
@@ -62,6 +62,10 @@ class Dataset():
         mu_cov = curr_gmm.mu_cov_estimate()
         gamma_cov = curr_gmm.gamma_estimate()
         scale_mat, dof = curr_gmm.sigma_estimate()
+
+        print('scale_mat gmm', scale_mat)
+        print('dof gmm', dof)
+
 
         for k in range(self.K):
             self.means_vars[k].cov = mu_cov
@@ -98,6 +102,10 @@ class Dataset():
     
     def dataset_vi(self, max_iter=1000):
 
+        
+
+        self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
+
         for _ in tqdm(range(max_iter), desc="Performing VI"):
 
             for k in range(self.K):
@@ -107,8 +115,8 @@ class Dataset():
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_vars[i])
-                self.phi_vars[i].vi(self.z_vars)
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
+                self.phi_var.vi(self.z_vars)
 
 
     
@@ -228,15 +236,9 @@ if __name__ == '__main__':
         K=2
     )
 
-    ds.gaussian_mm_init()
+    ds.dataset_vi(max_iter=10)
 
-    print(ds.means_vars[0].cov)
-    print(ds.sigma_star_vars[0].scale, ds.sigma_star_vars[0].dof)
-    print(ds.gamma_vars[0].cov)
+    print(ds.means_vars[1].mean, ds.means_vars[1].cov)
 
-    #ds.dataset_vi(max_iter=10)
 
-    # b_k_means = ds.best_k_means
-
-    # print(b_k_means.cluster_centers_)
     
