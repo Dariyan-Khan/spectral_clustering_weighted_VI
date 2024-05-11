@@ -16,6 +16,7 @@ from phi_dist import Phi
 
 from dataset_initialisation import GMM_Init
 
+from scipy.stats import beta
 
 class Dataset():
     
@@ -25,6 +26,7 @@ class Dataset():
         self.N = len(adj_mat)
         self.K = K
         self.embds = self.spectral_emb() # of size (N, self.d) where N is the number of samples
+        # print("self.embds", self.embds)
         self.normed_embds = self.embds / np.linalg.norm(self.embds, axis=1)[:, np.newaxis]
         self.best_k_means = None
 
@@ -57,23 +59,32 @@ class Dataset():
 
         # covariance_matrices = gmm.covariances_
 
-        curr_gmm = GMM_Init(self.normed_embds, n_components=self.K)
+        gmm = GMM_Init(self.normed_embds, n_components=self.K)
 
-        mu_cov = curr_gmm.mu_cov_estimate()
-        gamma_cov = curr_gmm.gamma_estimate()
-        scale_mat, dof = curr_gmm.sigma_estimate()
+        mu_cov = gmm.mu_prior_cov_estimate()
+        gamma_cov = gmm.gamma_prior_cov_estimate()
+        scale_mat, dof = gmm.sigma_prior_params_estimate()
+
+
 
         print('scale_mat gmm', scale_mat)
         print('dof gmm', dof)
 
 
         for k in range(self.K):
-            self.means_vars[k].cov = mu_cov
+            self.means_vars[k].prior_cov = mu_cov
+            self.means_vars[k].mean = gmm.cluster_centres[k]
 
-            self.sigma_star_vars[k].scale = scale_mat
-            self.sigma_star_vars[k].dof = dof
+
+            self.sigma_star_vars[k].prior_scale = scale_mat
+            self.sigma_star_vars[k].prior_dof = dof
+
+            self.sigma_star_vars[k].scale = gmm.sigma_star_inits[k] * (dof - self.d)
+            self.sigma_star_vars[k].dof = dof # gmm.sigma_star_inits[k] * (dof - self.d)
                 
 
+            self.gamma_vars[k].prior_cov = gamma_cov
+            self.gamma_vars[k].mean = gmm.gamma_inits[k]
             self.gamma_vars[k].cov = gamma_cov
 
     
@@ -139,15 +150,17 @@ class Synthetic_data(Dataset):
     def __init__(self, μ_1, μ_2, prior, N_t=1000):
         # prior has to be a function which takes no arguments and spits out a sample
 
-        assert len(μ_1) == 2, "μ_1 and μ_2 have to be a 2D vector"
-        assert len(μ_1) == len(μ_2), "μ_1 and μ_2 have to be a 2D vector"
+        # assert len(μ_1) == 2, "μ_1 and μ_2 have to be a 2D vector"
+        # assert len(μ_1) == len(μ_2), "μ_1 and μ_2 have to be a 2D vector"
 
         self.μ_1 = μ_1
         self.μ_2 = μ_2
+        self.mean_len = len(μ_1)
+        self.N_t=N_t
         self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
-        self.N_t=N_t # number of data points
+         # number of data points
 
-        super().__init__(self.adj_mat, 2, 2)
+        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=2)
 
 
     def find_delta_inv(self, μ_1, μ_2, exp_rho):
@@ -204,14 +217,26 @@ class Synthetic_data(Dataset):
         eigvecs_trunc = eigvecs[:,:embedding_dim]
         eigvals_trunc = np.diag(np.sqrt(np.abs(eigvals[:embedding_dim])))
         spectral_embedding = eigvecs_trunc @ eigvals_trunc
-        true_means = np.zeros((self.N_t, 2))
+        true_means = np.zeros((self.N_t, self.mean_len))
 
         for i in range(self.N_t):
             ρ_i, μ_i = self.bern_params[i][0], μ_mat[:, self.bern_params[i][1]]
             true_means[i, :] =  ρ_i * μ_i
 
+        # print("true_means", true_means)
+
         best_orthog_mat = orthogonal_procrustes(spectral_embedding, true_means)
+
+        # print("best_orthog_mat", best_orthog_mat[0])
+
+        
+
         spectral_embedding = spectral_embedding @ best_orthog_mat[0]
+
+        # print("spectral_embedding", spectral_embedding)
+
+        # print("min norm", min(spectral_embedding, key=np.linalg.norm))
+
         return spectral_embedding
 
 
@@ -229,16 +254,35 @@ if __name__ == '__main__':
     [0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
     [1, 0, 1, 1, 1, 1, 0, 0, 1, 0]
 ]
+    
 
-    ds = Dataset(
-        adj_matrix,
-        emb_dim=3,
-        K=2
-    )
+    # ds = Dataset(
+    #     adj_matrix,
+    #     emb_dim=3,
+    #     K=2
+    # )
 
-    ds.dataset_vi(max_iter=10)
+    # ds.dataset_vi(max_iter=1000)
 
+    # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
+
+    μ_1 = np.array([0.75, 0.25, 0])
+    μ_2 = np.array([0.25, 0.75, 0])
+    α = 2
+    β = 2
+    prior = lambda : beta.rvs(α, β)
+    ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
+
+
+    ds.dataset_vi(max_iter=12)
+
+    print(ds.means_vars[0].mean, ds.means_vars[0].cov)
     print(ds.means_vars[1].mean, ds.means_vars[1].cov)
+    #print()
+
+
+
+
 
 
     

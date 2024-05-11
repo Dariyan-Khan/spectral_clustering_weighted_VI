@@ -43,10 +43,17 @@ class Z():
             
             P_k = P_k_1 + P_k_2
 
-            self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) / digamma(sum(phi.conc))
+            # print("P_k", P_k)
+
+            self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) # / digamma(sum(phi.conc))
+
+            self.log_probs[k] = P_k + np.log(phi.conc[k])
+
+            # print("self probbs in z_dist:", self.probs)
 
         
-        self.probs = self.probs / sum(self.probs)
+        # self.probs = self.probs / sum(self.probs)
+        self.probs = np.exp(self.log_probs - np.logsumexp(self.log_probs))
 
             
         

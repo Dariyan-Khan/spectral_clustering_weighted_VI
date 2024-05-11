@@ -11,7 +11,7 @@ class Sigma_Star():
             self.prior_scale = prior_scale # (scale matrix, degrees of freedom)
         
         if prior_dof is None:
-            self.prior_dof = d + 1
+            self.prior_dof = d + 3
         
         else:
             self.prior_dof = prior_dof
@@ -76,7 +76,7 @@ class Sigma_Star():
             dof += z.probs[self.k]
         
         self.scale = scale_mat
-        self.dof = dof
+        self.dof = max(dof, self.d+3)  # added max here
 
         self.first_moment = self.first_mom()
         self.second_moment = self.second_mom()
