@@ -31,12 +31,13 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
         first_moment = sigma_star.first_mom()
         second_moment = sigma_star.second_mom()
 
+
         γ_outer_product = γ.outer_prod()
         γ_triple = γ.three_gamma()
         γ_quad = γ.quadruple_gamma()
 
         A = second_moment + (first_moment @ γ_outer_product) + \
-            (γ_outer_product @ first_moment) + γ_quad
+            (γ_outer_product @ first_moment) + γ_quad + γ_outer_product
         
         B = np.expand_dims((first_moment @ γ.mean) + γ_triple + γ.mean, axis=1)
 

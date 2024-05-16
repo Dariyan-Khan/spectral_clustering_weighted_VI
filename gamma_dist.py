@@ -38,38 +38,6 @@ class Gamma():
                 μ_k.cov[self.d-1, self.d-1]
             )
 
-            # print("line 41 gamma disst")
-
-            # print(data.shape, μ_k.mean.shape, r_vi_list[i].second_moment.shape, r_vi_list[i].first_moment.shape)
-            # print(data[:self.d].shape, μ_k.mean[:self.d].shape)
-
-            # print(r_vi_list[i].second_moment * data[self.d-1] * data[:self.d])
-            # print(r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d])
-            # print(r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1])
-            # print(μ_k.mean[:self.d] * μ_k.mean[self.d-1])
-
-            # print(z.probs[self.k] * (
-            #     r_vi_list[i].second_moment * data[self.d-1] * data[:self.d] - \
-            #     r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d] - \
-            #     r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1] + \
-            #     μ_k.mean[:self.d] * μ_k.mean[self.d-1]
-            # ))
-
-            # print(mean_vec.shape)
-
-            # a = r_vi_list[i].second_moment * data[self.d-1] * data[:self.d]
-            # print(f"==>> a.shape: {a.shape}")
-
-            # b = r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d]
-            # print(f"==>> b.shape: {b.shape}")
-
-            # c = r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1]
-            # print(f"==>> c.shape: {c.shape}")
-
-            # d = μ_k.mean[:self.d] * μ_k.mean[self.d-1]
-            # print(f"==>> d.shape: {d.shape}")
-
-            # I think need to change :self.d to:self.d - 1
             mean_vec += z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
@@ -79,16 +47,18 @@ class Gamma():
 
 
 
-        cov_mat = sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale) @ cov_mat_inner
+        cov_mat = sigma_star_k.dof * np.matmul(np.linalg.inv(sigma_star_k.scale), cov_mat_inner)
         cov_mat += np.linalg.inv(self.prior_cov)
 
         # print(np.linalg.det(cov_mat), "cov mat det")
 
         self.cov = np.linalg.inv(cov_mat)
 
-        mean_vec = sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale) @ mean_vec
+        mean_vec.reshape(-1,1)
 
-        self.mean = self.cov @ mean_vec
+        mean_vec = np.matmul(sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale), mean_vec)
+
+        self.mean = np.matmul(self.cov, mean_vec)
 
         self.outer_product = self.outer_prod()
 
@@ -100,7 +70,7 @@ class Gamma():
     
 
     def outer_prod(self):
-        return self.cov + self.mean @ self.mean.T
+        return self.cov + np.outer(self.mean, self.mean)
 
 
     def three_gamma(self):
