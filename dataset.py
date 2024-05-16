@@ -71,9 +71,15 @@ class Dataset():
         print('dof gmm', dof)
 
 
+
         for k in range(self.K):
             self.means_vars[k].prior_cov = mu_cov
             self.means_vars[k].mean = gmm.cluster_centres[k]
+            self.means_vars[k].cov = mu_cov
+
+            self.means_vars[k].cov = mu_cov
+
+            print(f"mu_cov {k} det:", np.linalg.det(mu_cov))
 
 
             self.sigma_star_vars[k].prior_scale = scale_mat
@@ -81,11 +87,15 @@ class Dataset():
 
             self.sigma_star_vars[k].scale = gmm.sigma_star_inits[k] * (dof - self.d)
             self.sigma_star_vars[k].dof = dof # gmm.sigma_star_inits[k] * (dof - self.d)
+
+            print(f"scale_mat {k} det:", np.linalg.det(scale_mat))
                 
 
             self.gamma_vars[k].prior_cov = gamma_cov
             self.gamma_vars[k].mean = gmm.gamma_inits[k]
             self.gamma_vars[k].cov = gamma_cov
+
+            print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
 
     
     def k_means_init(self, clusters_to_check=list(range(2, 11))):
@@ -266,8 +276,14 @@ if __name__ == '__main__':
 
     # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
 
-    μ_1 = np.array([0.75, 0.25, 0])
-    μ_2 = np.array([0.25, 0.75, 0])
+    # μ_1 = np.array([0.75, 0.25, 0])
+    # μ_2 = np.array([0.25, 0.75, 0])
+
+    μ_1 = np.array([0.5,0.25,0.25])
+    μ_2 = np.array([0.4,0.15,0.45])
+
+    # [0.8018,0.2673,0.5345] 
+    # [0.2673,0.8018,0.5345]
     α = 2
     β = 2
     prior = lambda : beta.rvs(α, β)

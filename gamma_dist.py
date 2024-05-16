@@ -82,6 +82,8 @@ class Gamma():
         cov_mat = sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale) @ cov_mat_inner
         cov_mat += np.linalg.inv(self.prior_cov)
 
+        # print(np.linalg.det(cov_mat), "cov mat det")
+
         self.cov = np.linalg.inv(cov_mat)
 
         mean_vec = sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale) @ mean_vec
