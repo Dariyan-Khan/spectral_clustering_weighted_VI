@@ -19,6 +19,8 @@ class Z():
     
     def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi):
 
+        log_probs = [1/self.K for _ in range(self.K)]
+
         for k in range(self.K):
             μ = μ_list[k]
             sigma_star = sigma_star_list[k]
@@ -47,13 +49,13 @@ class Z():
 
             self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) # / digamma(sum(phi.conc))
 
-            self.log_probs[k] = P_k + np.log(phi.conc[k])
+            log_probs[k] = P_k + np.log(phi.conc[k])
 
             # print("self probbs in z_dist:", self.probs)
 
         
         # self.probs = self.probs / sum(self.probs)
-        self.probs = np.exp(self.log_probs - np.logsumexp(self.log_probs))
+        self.probs = np.exp(log_probs - np.logsumexp(self.log_probs))
 
             
         
