@@ -53,13 +53,8 @@ class Dataset():
     
     def gaussian_mm_init(self):
 
-        # gmm = GaussianMixture(n_components=self.K, covariance_type='full')
-        # # Fit the model 
-        # gmm.fit(self.normed_embds)
 
-        # covariance_matrices = gmm.covariances_
-
-        gmm = GMM_Init(self.normed_embds, n_components=self.K)
+        gmm = GMM_Init(self.embds, n_components=self.K)
 
         mu_cov = gmm.mu_prior_cov_estimate()
         gamma_cov = gmm.gamma_prior_cov_estimate()
@@ -75,7 +70,7 @@ class Dataset():
         for k in range(self.K):
             self.means_vars[k].prior_cov = mu_cov
             self.means_vars[k].mean = gmm.cluster_centres[k]
-            self.means_vars[k].cov = mu_cov
+            self.means_vars[k].cov =  np.eye(self.d) #mu_cov
 
             self.means_vars[k].cov = mu_cov
 
@@ -85,17 +80,18 @@ class Dataset():
             self.sigma_star_vars[k].prior_scale = scale_mat
             self.sigma_star_vars[k].prior_dof = dof
 
-            self.sigma_star_vars[k].scale = gmm.sigma_star_inits[k] * (dof - self.d)
+            self.sigma_star_vars[k].scale = gmm.sigma_star_estimates[k] * (dof - self.d)
             self.sigma_star_vars[k].dof = dof # gmm.sigma_star_inits[k] * (dof - self.d)
 
             print(f"scale_mat {k} det:", np.linalg.det(scale_mat))
                 
 
             self.gamma_vars[k].prior_cov = gamma_cov
-            self.gamma_vars[k].mean = gmm.gamma_inits[k]
+            self.gamma_vars[k].mean = gmm.gamma_estimates[k]
             self.gamma_vars[k].cov = gamma_cov
 
             print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
+            print("gamma cov:", gamma_cov)
 
     
     def k_means_init(self, clusters_to_check=list(range(2, 11))):
@@ -266,34 +262,34 @@ if __name__ == '__main__':
 ]
     
 
-    # ds = Dataset(
-    #     adj_matrix,
-    #     emb_dim=3,
-    #     K=2
-    # )
+    ds = Dataset(
+        adj_matrix,
+        emb_dim=3,
+        K=2
+    )
 
-    # ds.dataset_vi(max_iter=1000)
+    ds.dataset_vi(max_iter=100)
 
-    # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
+    print(ds.means_vars[1].mean, ds.means_vars[1].cov)
 
     # μ_1 = np.array([0.75, 0.25, 0])
     # μ_2 = np.array([0.25, 0.75, 0])
 
-    μ_1 = np.array([0.5,0.25,0.25])
-    μ_2 = np.array([0.4,0.15,0.45])
+    # # μ_1 = np.array([0.5,0.25,0.25])
+    # # μ_2 = np.array([0.4,0.15,0.45])
 
-    # [0.8018,0.2673,0.5345] 
-    # [0.2673,0.8018,0.5345]
-    α = 2
-    β = 2
-    prior = lambda : beta.rvs(α, β)
-    ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
+    # # [0.8018,0.2673,0.5345] 
+    # # [0.2673,0.8018,0.5345]
+    # α = 2
+    # β = 2
+    # prior = lambda : beta.rvs(α, β)
+    # ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
 
 
-    ds.dataset_vi(max_iter=12)
+    # ds.dataset_vi(max_iter=12)
 
-    print(ds.means_vars[0].mean, ds.means_vars[0].cov)
-    print(ds.means_vars[1].mean, ds.means_vars[1].cov)
+    # print(ds.means_vars[0].mean, ds.means_vars[0].cov)
+    # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
     #print()
 
 

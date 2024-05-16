@@ -10,71 +10,42 @@ class GMM_Init():
 
         self.cluster_centres = self.fitted_gmm.means_
         self.cluster_covs = self.fitted_gmm.covariances_
-        
-        self.gamma_inits = []
-        self.sigma_star_inits = []
 
-        for c_cov in self.cluster_covs:
-            self.gamma_inits.append(c_cov[:-1,-1])
-
-            # print("outer product:", np.outer(c_cov[:-1,-1], c_cov[:-1,-1]))
-
-            self.sigma_star_inits.append(c_cov[:-1,:-1] - np.outer(c_cov[:-1,-1], c_cov[:-1,-1]))
-        
-
+        self.gamma_estimates = np.array([self.gamma_scaled(cov_mat) for cov_mat in self.cluster_covs])
+    
 
     def mu_prior_cov_estimate(self):
         cluster_centres = self.fitted_gmm.means_
 
         print(cluster_centres, "cluster centres")
 
-
-
         return np.cov(cluster_centres.T)
     
-    def scaled_cluster_covs(self):
-        # scaled so bottom right element is 1
-        cluster_covs = self.fitted_gmm.covariances_
-        return [cov/cov[-1,-1] for cov in cluster_covs]
+    def gamma_scaled(self, cov_mat):
+        ν = cov_mat[-1,-1]
+        γ = cov_mat[-1,:-1] / np.sqrt(ν)
+        return γ
+
     
     def gamma_prior_cov_estimate(self):
-        cluster_covs = self.fitted_gmm.covariances_
-
-        # print(f"""
-        # Cluster cov 1:
-              
-        #       {cluster_covs[0]}
-    
-        # Cluster cov 2:
-
-        #     {cluster_covs[1]}
-
-        #       """)
-        # print(cluster_covs, "cluster covs")
-        # gamma_estimates = np.array([cov[:-1,-1] for cov in self.scaled_cluster_covs()])
-        gamma_estimates = np.array([cov[:-1,-1] for cov in cluster_covs])
-        # print(gamma_estimates, "gamma estimates")
-
-        print(gamma_estimates, "gamma estimates")
-        gamma_cov_estimate = np.cov(gamma_estimates.T)
-        print(gamma_cov_estimate, "gamma cov estimate")
-
+        print("self.gamma_estimates: ", self.gamma_estimates)
+        gamma_cov_estimate = np.cov(self.gamma_estimates.T)
         return gamma_cov_estimate
 
 
     def sigma_prior_params_estimate(self):
-        cluster_covs = self.fitted_gmm.covariances_
-        d = len(cluster_covs[0])
+        d = len(self.cluster_covs[0])
 
-        gamma_cov_estimate = self.gamma_prior_cov_estimate()
+        sigma_star_estimates = []
 
-        # sigma_star_estimates = [cov[:-1,:-1]-gamma_cov_estimate for cov in self.scaled_cluster_covs()]
+        for i, cov_mat in enumerate(self.cluster_covs):
+            sigma_star_estimates.append(cov_mat[:-1,:-1] - np.outer(self.gamma_estimates[i], self.gamma_estimates[i]))
+        
+        sigma_star_estimates = np.array(sigma_star_estimates)
 
-        # sigma_star_estimates = [cov[:-1,:-1]-gamma_cov_estimate for cov in cluster_covs]
-        sigma_star_estimates = np.array(self.sigma_star_inits)
+        self.sigma_star_estimates = sigma_star_estimates
+
         dim = len(sigma_star_estimates[0])
-
-
         dof = d+3 # Set it to be d+3 for now
         sigma_star_mean = np.mean(sigma_star_estimates, axis = 0)
         scale = sigma_star_mean * (dof - (dim + 1))
