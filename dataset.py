@@ -84,12 +84,16 @@ class Dataset():
             self.sigma_star_vars[k].scale = gmm.sigma_star_estimates[k] * (dof - self.d)
             self.sigma_star_vars[k].dof = dof # gmm.sigma_star_inits[k] * (dof - self.d)
 
+            self.sigma_star_vars[k].nu = gmm.cluster_covs[k][-1,-1]
+
             print(f"scale_mat {k} det:", np.linalg.det(scale_mat))
                 
 
             self.gamma_vars[k].prior_cov = gamma_cov
             self.gamma_vars[k].mean = gmm.gamma_estimates[k]
             self.gamma_vars[k].cov = gamma_cov
+
+            self.gamma_vars[k].nu = gmm.cluster_covs[k][-1,-1]
 
             print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
             print("gamma cov:", gamma_cov)
