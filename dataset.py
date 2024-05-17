@@ -60,10 +60,11 @@ class Dataset():
         gamma_cov = gmm.gamma_prior_cov_estimate()
         scale_mat, dof = gmm.sigma_prior_params_estimate()
 
+        # print('mu_cov gmm', mu_cov)
 
 
-        print('scale_mat gmm', scale_mat)
-        print('dof gmm', dof)
+        # print('scale_mat gmm', scale_mat)
+        # print('dof gmm', dof)
 
 
 
@@ -119,7 +120,6 @@ class Dataset():
     
     def dataset_vi(self, max_iter=1000):
 
-        
 
         self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
 
