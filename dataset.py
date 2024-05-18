@@ -54,7 +54,8 @@ class Dataset():
     def gaussian_mm_init(self):
 
 
-        gmm = GMM_Init(self.embds, n_components=self.K)
+        gmm = GMM_Init(self.normed_embds, n_components=self.K)
+        self.gmm = gmm
 
         mu_cov = gmm.mu_prior_cov_estimate()
         gamma_cov = gmm.gamma_prior_cov_estimate()
@@ -233,19 +234,9 @@ class Synthetic_data(Dataset):
             ρ_i, μ_i = self.bern_params[i][0], μ_mat[:, self.bern_params[i][1]]
             true_means[i, :] =  ρ_i * μ_i
 
-        # print("true_means", true_means)
-
         best_orthog_mat = orthogonal_procrustes(spectral_embedding, true_means)
 
-        # print("best_orthog_mat", best_orthog_mat[0])
-
-        
-
         spectral_embedding = spectral_embedding @ best_orthog_mat[0]
-
-        # print("spectral_embedding", spectral_embedding)
-
-        # print("min norm", min(spectral_embedding, key=np.linalg.norm))
 
         return spectral_embedding
 

@@ -55,7 +55,7 @@ class Z():
 
         
         # self.probs = self.probs / sum(self.probs)
-        self.probs = np.exp(log_probs - np.logsumexp(self.log_probs))
+        self.probs = np.exp(log_probs - np.logaddexp(*log_probs))
 
             
         

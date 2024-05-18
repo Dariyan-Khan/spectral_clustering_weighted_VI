@@ -12,6 +12,8 @@ class GMM_Init():
         self.cluster_covs = self.fitted_gmm.covariances_
 
         self.gamma_estimates = np.array([self.gamma_scaled(cov_mat) for cov_mat in self.cluster_covs])
+
+        self.labels = gmm.predict(dataset)
     
 
     def mu_prior_cov_estimate(self):
@@ -19,7 +21,9 @@ class GMM_Init():
 
         print(cluster_centres, "cluster centres")
 
-        return np.cov(cluster_centres.T)
+        mu_cov = np.cov(cluster_centres.T)
+
+        return np.diag(np.diag(mu_cov))
     
     def gamma_scaled(self, cov_mat):
         ν = cov_mat[-1,-1]
@@ -30,6 +34,7 @@ class GMM_Init():
     def gamma_prior_cov_estimate(self):
         print("self.gamma_estimates: ", self.gamma_estimates)
         gamma_cov_estimate = np.cov(self.gamma_estimates.T)
+        gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
         return gamma_cov_estimate
 
 
@@ -51,3 +56,12 @@ class GMM_Init():
         scale = sigma_star_mean * (dof - (dim + 1))
 
         return scale, dof
+    
+    def print_labels(self):
+        # Count the number of elements in each group
+        unique, counts = np.unique(self.labels, return_counts=True)
+        group_counts = dict(zip(unique, counts))
+
+        print("Number of elements in each group:")
+        for group, count in group_counts.items():
+            print(f"Group {group}: {count} elements")
