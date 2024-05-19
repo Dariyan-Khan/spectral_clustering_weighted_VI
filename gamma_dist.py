@@ -37,37 +37,7 @@ class Gamma():
                 μ_k.mean[self.d-1]**2 + \
                 μ_k.cov[self.d-1, self.d-1]
             )
-
-            # print("line 41 gamma disst")
-
-            # print(data.shape, μ_k.mean.shape, r_vi_list[i].second_moment.shape, r_vi_list[i].first_moment.shape)
-            # print(data[:self.d].shape, μ_k.mean[:self.d].shape)
-
-            # print(r_vi_list[i].second_moment * data[self.d-1] * data[:self.d])
-            # print(r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d])
-            # print(r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1])
-            # print(μ_k.mean[:self.d] * μ_k.mean[self.d-1])
-
-            # print(z.probs[self.k] * (
-            #     r_vi_list[i].second_moment * data[self.d-1] * data[:self.d] - \
-            #     r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d] - \
-            #     r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1] + \
-            #     μ_k.mean[:self.d] * μ_k.mean[self.d-1]
-            # ))
-
-            # print(mean_vec.shape)
-
-            # a = r_vi_list[i].second_moment * data[self.d-1] * data[:self.d]
-            # print(f"==>> a.shape: {a.shape}")
-
-            # b = r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d]
-            # print(f"==>> b.shape: {b.shape}")
-
-            # c = r_vi_list[i].first_moment * data[:self.d] * μ_k.mean[self.d-1]
-            # print(f"==>> c.shape: {c.shape}")
-
-            # d = μ_k.mean[:self.d] * μ_k.mean[self.d-1]
-            # print(f"==>> d.shape: {d.shape}")
+            
 
             # I think need to change :self.d to:self.d - 1
             mean_vec += z.probs[self.k] * (
@@ -92,7 +62,11 @@ class Gamma():
 
         self.outer_product = self.outer_prod()
 
-        self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
+        print("gamma cov", self.cov)
+
+        std_devs = np.sqrt(np.diag(self.cov))
+
+        self.corr = self.cov / np.outer(std_devs, std_devs)
 
         # self.triple_gamma = self.three_gama()
 
@@ -124,7 +98,12 @@ class Gamma():
 
     def quadruple_gamma(self):
 
-        self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
+        std_devs = np.sqrt(np.diag(self.cov))
+        # print(std_devs, "std_devs")
+
+        self.corr = self.cov / np.outer(std_devs, std_devs)
+
+        # self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
 
         quad_mat =  np.zeros((self.dim, self.dim))
 

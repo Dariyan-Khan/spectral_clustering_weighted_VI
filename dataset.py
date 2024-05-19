@@ -61,6 +61,14 @@ class Dataset():
         gamma_cov = gmm.gamma_prior_cov_estimate()
         scale_mat, dof = gmm.sigma_prior_params_estimate()
 
+        # print("mu_cov", mu_cov)
+
+        for z_var, label in zip(self.z_vars, gmm.labels):
+            z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
+            z_var.probs[label] = 1 + np.random.uniform(-0.1, 0.1)
+            z_var.probs = z_var.probs / sum(z_var.probs)
+
+
         # print('mu_cov gmm', mu_cov)
 
 
@@ -217,6 +225,9 @@ class Synthetic_data(Dataset):
     def simulate_adj_mat(self, prior, μ_1, μ_2, μ_3):
         μ_mat = np.stack((μ_1, μ_2, μ_3), axis=1)
         bern_params = [(prior(), np.random.randint(0,3)) for _ in range(self.N_t)]
+
+        self.true_labels = [x[1] for x in bern_params]
+
         adj_mat = np.zeros((self.N_t, self.N_t))
 
         for i in range(self.N_t):
@@ -313,7 +324,16 @@ if __name__ == '__main__':
 
     ds = Synthetic_data(μ_1, μ_2, μ_3, prior, N_t=1000)
 
-    ds.dataset_vi(max_iter=12)
+    ds.dataset_vi(max_iter=2)
+
+    true_labels = ds.true_labels
+    max_probs = [np.argmax(z.probs) for z in ds.z_vars]
+    label_difference = np.sum(np.array(true_labels) != np.array(max_probs))
+    # print("Label Difference:", label_difference)
+
+    # print("True Labels:", true_labels[:10])
+
+    # print("Max Probs:", max_probs[:100])
 
 
 
