@@ -72,11 +72,11 @@ class Dataset():
         for k in range(self.K):
             self.means_vars[k].prior_cov = mu_cov
             self.means_vars[k].mean = gmm.cluster_centres[k]
-            self.means_vars[k].cov =  np.eye(self.d) #mu_cov
+            self.means_vars[k].cov =  mu_cov
 
             self.means_vars[k].cov = mu_cov
 
-            print(f"mu_cov {k} det:", np.linalg.det(mu_cov))
+            #print(f"mu_cov {k} det:", np.linalg.det(mu_cov))
 
 
             self.sigma_star_vars[k].prior_scale = scale_mat
@@ -87,7 +87,7 @@ class Dataset():
 
             self.sigma_star_vars[k].nu = gmm.cluster_covs[k][-1,-1]
 
-            print(f"scale_mat {k} det:", np.linalg.det(scale_mat))
+            #print(f"scale_mat {k} det:", np.linalg.det(scale_mat))
                 
 
             self.gamma_vars[k].prior_cov = gamma_cov
@@ -96,8 +96,8 @@ class Dataset():
 
             self.gamma_vars[k].nu = gmm.cluster_covs[k][-1,-1]
 
-            print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
-            print("gamma cov:", gamma_cov)
+            # print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
+            # print("gamma cov:", gamma_cov)
 
     
     def k_means_init(self, clusters_to_check=list(range(2, 11))):
@@ -130,6 +130,16 @@ class Dataset():
 
         for _ in tqdm(range(max_iter), desc="Performing VI"):
 
+            print("μ_0_mean", self.means_vars[0].mean)
+            print("μ_0_cov", self.means_vars[0].cov)
+            print("_________________________")
+            print("μ_1_mean", self.means_vars[1].mean)
+            print("μ_1_cov", self.means_vars[1].cov)
+            print("_________________________")
+            print("μ_2_mean", self.means_vars[2].mean)
+            print("μ_2_cov", self.means_vars[2].cov)
+            print("_________________________")
+
             for k in range(self.K):
                 self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
@@ -158,7 +168,7 @@ class Dataset():
 
 class Synthetic_data(Dataset):
 
-    def __init__(self, μ_1, μ_2, prior, N_t=1000):
+    def __init__(self, μ_1, μ_2, μ_3,  prior, N_t=1000):
         # prior has to be a function which takes no arguments and spits out a sample
 
         # assert len(μ_1) == 2, "μ_1 and μ_2 have to be a 2D vector"
@@ -166,19 +176,21 @@ class Synthetic_data(Dataset):
 
         self.μ_1 = μ_1
         self.μ_2 = μ_2
+        self.μ_3 = μ_3
         self.mean_len = len(μ_1)
         self.N_t=N_t
-        self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
+        self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2, μ_3)
          # number of data points
 
-        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=2)
+        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=3)
 
 
-    def find_delta_inv(self, μ_1, μ_2, exp_rho):
+    def find_delta_inv(self, μ_1, μ_2, μ_3, exp_rho):
         μ_1_outer = np.outer(μ_1, μ_1)
         μ_2_outer = np.outer(μ_2, μ_2)
+        μ_3_outer = np.outer(μ_3, μ_3)
 
-        Δ = exp_rho**2 * (1 / 2) * (μ_1_outer + μ_2_outer)
+        Δ = exp_rho**2 * (1 / 3) * (μ_1_outer + μ_2_outer + μ_3_outer)
 
         Δ_inv = np.linalg.inv(Δ) 
         return Δ_inv
@@ -186,21 +198,25 @@ class Synthetic_data(Dataset):
     def exp_X1_inner_func(self, x, ρ, μ):
         return (np.dot(x, ρ*μ) - (np.dot(x, ρ*μ)**2)) * np.outer(ρ*μ, ρ*μ)
 
-    def covariance_estimate(self, x, μ_1, μ_2, prior, exp_rho, N_ρ=1000, N_t=1000):
+    def covariance_estimate(self, x, μ_1, μ_2, μ_3, prior, exp_rho, N_ρ=1000, N_t=1000):
         ρ_samples_1 = np.array([prior() for _ in range(N_ρ)])
         ρ_samples_2 = np.array([prior() for _ in range(N_ρ)])
+        ρ_samples_3 = np.array([prior() for _ in range(N_ρ)])
+
         μ_1_integral_estimate = (1 / N_ρ) * sum(self.exp_X1_inner_func(x, ρ, μ_1) for ρ in ρ_samples_1)
         μ_2_integral_estimate = (1 / N_ρ) * sum(self.exp_X1_inner_func(x, ρ, μ_2) for ρ in ρ_samples_2)
-        exp_X1_func_estimate = 0.5 * (μ_1_integral_estimate + μ_2_integral_estimate)
-        Δ_inv = self.find_delta_inv(μ_1, μ_2, exp_rho)
+        μ_3_integral_estimate = (1 / N_ρ) * sum(self.exp_X1_inner_func(x, ρ, μ_3) for ρ in ρ_samples_3)
+
+        exp_X1_func_estimate = (1/3) * (μ_1_integral_estimate + μ_2_integral_estimate + μ_3_integral_estimate)
+        Δ_inv = self.find_delta_inv(μ_1, μ_2, μ_3, exp_rho)
         return (Δ_inv @ exp_X1_func_estimate @ Δ_inv) / N_t
 
     def check_symmetric(self, a, rtol=1e-05, atol=1e-08):
         return np.allclose(a, a.T, rtol=rtol, atol=atol)
 
-    def simulate_adj_mat(self, prior, μ_1, μ_2):
-        μ_mat = np.stack((μ_1, μ_2), axis=1)
-        bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+    def simulate_adj_mat(self, prior, μ_1, μ_2, μ_3):
+        μ_mat = np.stack((μ_1, μ_2, μ_3), axis=1)
+        bern_params = [(prior(), np.random.randint(0,3)) for _ in range(self.N_t)]
         adj_mat = np.zeros((self.N_t, self.N_t))
 
         for i in range(self.N_t):
@@ -208,7 +224,7 @@ class Synthetic_data(Dataset):
             for j in range(i):
                 ρ_j, μ_j = bern_params[j][0], μ_mat[:, bern_params[j][1]]
 
-                adj_mat[i,j] = np.random.binomial(1, ρ_i * ρ_j * np.dot(μ_i, μ_j))
+                adj_mat[i,j] = np.random.binomial(1, ρ_i * ρ_j * np.dot(μ_i, μ_j)) # equivalent to a bernoulli distribution
 
                 adj_mat[j,i] = adj_mat[i,j]
             
@@ -219,7 +235,7 @@ class Synthetic_data(Dataset):
         return adj_mat, bern_params
     
     def spectral_emb(self):
-        μ_mat = np.stack((self.μ_1, self.μ_2), axis=1)
+        μ_mat = np.stack((self.μ_1, self.μ_2, self.μ_3), axis=1)
         eigvals, eigvecs = np.linalg.eig(self.adj_mat)
         sorted_indexes = np.argsort(np.abs(eigvals))[::-1]
         eigvals = eigvals[sorted_indexes]
@@ -243,29 +259,29 @@ class Synthetic_data(Dataset):
 
 if __name__ == '__main__':
 
-    adj_matrix = [
-    [0, 1, 0, 1, 1, 0, 1, 0, 0, 1],
-    [1, 0, 1, 0, 1, 1, 1, 0, 1, 0],
-    [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-    [1, 0, 1, 0, 0, 0, 1, 1, 1, 1],
-    [1, 1, 0, 0, 0, 0, 1, 1, 1, 1],
-    [0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
-    [1, 1, 0, 1, 1, 0, 0, 1, 1, 0],
-    [0, 0, 1, 1, 1, 1, 1, 0, 1, 0],
-    [0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-    [1, 0, 1, 1, 1, 1, 0, 0, 1, 0]
-]
+#     adj_matrix = [
+#     [0, 1, 0, 1, 1, 0, 1, 0, 0, 1],
+#     [1, 0, 1, 0, 1, 1, 1, 0, 1, 0],
+#     [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
+#     [1, 0, 1, 0, 0, 0, 1, 1, 1, 1],
+#     [1, 1, 0, 0, 0, 0, 1, 1, 1, 1],
+#     [0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
+#     [1, 1, 0, 1, 1, 0, 0, 1, 1, 0],
+#     [0, 0, 1, 1, 1, 1, 1, 0, 1, 0],
+#     [0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+#     [1, 0, 1, 1, 1, 1, 0, 0, 1, 0]
+# ]
     
 
-    ds = Dataset(
-        adj_matrix,
-        emb_dim=3,
-        K=2
-    )
+#     ds = Dataset(
+#         adj_matrix,
+#         emb_dim=3,
+#         K=2
+#     )
 
-    ds.dataset_vi(max_iter=100)
+#     ds.dataset_vi(max_iter=100)
 
-    print(ds.means_vars[1].mean, ds.means_vars[1].cov)
+#     print(ds.means_vars[1].mean, ds.means_vars[1].cov)
 
     # μ_1 = np.array([0.75, 0.25, 0])
     # μ_2 = np.array([0.25, 0.75, 0])
@@ -286,6 +302,19 @@ if __name__ == '__main__':
     # print(ds.means_vars[0].mean, ds.means_vars[0].cov)
     # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
     #print()
+
+    μ_1 = np.array([0.8,0.15,0.05])
+    μ_2 = np.array([0.4,0.45,0.15])
+    μ_3 = np.array([0.1,0.3,0.6])
+
+    α = 2
+    β = 2
+    prior = lambda : beta.rvs(α, β)
+
+    ds = Synthetic_data(μ_1, μ_2, μ_3, prior, N_t=1000)
+
+    ds.dataset_vi(max_iter=12)
+
 
 
 

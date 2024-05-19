@@ -19,7 +19,7 @@ class GMM_Init():
     def mu_prior_cov_estimate(self):
         cluster_centres = self.fitted_gmm.means_
 
-        print(cluster_centres, "cluster centres")
+        # print(cluster_centres, "cluster centres")
 
         mu_cov = np.cov(cluster_centres.T)
 
@@ -32,7 +32,7 @@ class GMM_Init():
 
     
     def gamma_prior_cov_estimate(self):
-        print("self.gamma_estimates: ", self.gamma_estimates)
+        # print("self.gamma_estimates: ", self.gamma_estimates)
         gamma_cov_estimate = np.cov(self.gamma_estimates.T)
         gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
         return gamma_cov_estimate

@@ -37,8 +37,17 @@ class Mu():
             B += r_vi_list[i].first_moment * z.probs[self.k] * data
 
         # print("curr sigma_star_k", sigma_star_k)
+
+        sigma_inv_estimate = sigma_inv_approx(sigma_star_k, γ_k)
+
+        print(sigma_inv_estimate, "sigma_inv_estimate")
+
+        print(np.linalg.det(sigma_inv_estimate), "det sigma_inv_estimate")
+
+
+        B = np.matmul(sigma_inv_estimate, B)
                 
-        A = sigma_inv_approx(sigma_star_k, γ_k)*n_k + np.linalg.inv(self.prior_cov)
+        A = sigma_inv_estimate*n_k + np.linalg.inv(self.prior_cov)
         A_inv = np.linalg.inv(A)
     
 

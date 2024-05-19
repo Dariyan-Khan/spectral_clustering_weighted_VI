@@ -7,13 +7,13 @@ class R():
     def __init__(self, d, α=None, β=None):
 
         if α is None:
-            self.α = 1
+            self.α = 2
         
         else:
             self.α = α
         
         if β is None:
-            self.β = 1
+            self.β = 2
         
         else:
             self.β = β
