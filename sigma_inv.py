@@ -41,7 +41,7 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
 
         return np.block([[A, B], [B.T, C]])
     
-    return 3 * α * np.eye(d) - 3 * α**2 * Sigma_expectation(sigma_star, γ) + α**2 * Sigma_sq_expectation(sigma_star, γ)
+    return 3 * α * np.eye(d) - 3 * α**2 * Sigma_expectation(sigma_star, γ) + α**3 * Sigma_sq_expectation(sigma_star, γ)
 
 
 

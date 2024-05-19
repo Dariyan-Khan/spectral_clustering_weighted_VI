@@ -53,7 +53,7 @@ class R():
         γ = γ_vi_list[data_group]
         μ = μ_vi_list[data_group]
 
-        sigma_inv = sigma_inv_approx(sigma, γ)
+        sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
 
         self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
         self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)

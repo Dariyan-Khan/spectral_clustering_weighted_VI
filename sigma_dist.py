@@ -22,6 +22,7 @@ class Sigma_Star():
         self.scale = None
         self.dof = None
         self.first_moment = None
+        self.nu = None
     
     def X_i_matrix(self, r_i, μ_k, γ_k, norm_data): #norm data means that the data point is normalised
         X_i = np.zeros((self.dim, self.dim))

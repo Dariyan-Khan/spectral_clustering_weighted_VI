@@ -83,7 +83,7 @@ class Dataset():
             self.sigma_star_vars[k].prior_dof = dof
 
             self.sigma_star_vars[k].scale = gmm.sigma_star_estimates[k] * (dof - self.d)
-            self.sigma_star_vars[k].dof = dof # gmm.sigma_star_inits[k] * (dof - self.d)
+            self.sigma_star_vars[k].dof = max(dof, self.d +3) # gmm.sigma_star_inits[k] * (dof - self.d)
 
             self.sigma_star_vars[k].nu = gmm.cluster_covs[k][-1,-1]
 
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     μ_2 = np.array([0.4,0.45,0.15])
     μ_3 = np.array([0.1,0.3,0.6])
 
-    α = 2
+    α = 7
     β = 2
     prior = lambda : beta.rvs(α, β)
 
