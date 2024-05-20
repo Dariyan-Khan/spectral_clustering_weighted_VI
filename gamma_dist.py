@@ -80,22 +80,39 @@ class Gamma():
 
 
     def three_gamma(self):
-        col_vars = np.tile(np.diag(self.cov).reshape(1, self.dim), (self.dim, 1)) # if we change rows, should stay the same 
-        A_mat  = self.cov / col_vars
+        # col_vars = np.tile(np.diag(self.cov).reshape(1, self.dim), (self.dim, 1)) # if we change rows, should stay the same 
+        # A_mat  = self.cov / col_vars
 
-        np.fill_diagonal(A_mat, 0)
+        # np.fill_diagonal(A_mat, 0)
 
-        M_2_vec = np.diag(self.cov) + self.mean**2
-        M_3_vec = self.mean**3 + 3 * self.mean * np.diag(self.cov)
+        # M_2_vec = np.diag(self.cov) + self.mean**2
+        # M_3_vec = self.mean**3 + 3 * self.mean * np.diag(self.cov)
 
-        col_mu = np.tile(self.mean.reshape(1,self.dim), (self.dim,1))  # if we change rows, should stay the same 
-        row_mu = col_mu.T  # if we change cols, should stay the same 
+        # col_mu = np.tile(self.mean.reshape(1,self.dim), (self.dim,1))  # if we change rows, should stay the same 
+        # row_mu = col_mu.T  # if we change cols, should stay the same 
 
-        B_mat = row_mu - col_mu*A_mat
+        # B_mat = row_mu - col_mu*A_mat
 
-        np.fill_diagonal(B_mat, 0)
+        # np.fill_diagonal(B_mat, 0)
 
-        return M_3_vec  + (A_mat @ M_3_vec) + (B_mat @ M_2_vec)
+        # return M_3_vec  + (A_mat @ M_3_vec) + (B_mat @ M_2_vec)
+
+        three_vec = np.zeros(self.dim)
+
+        for i in range(self.dim):
+            three_vec[i] = self.mean[i]**3 + 3 * self.mean[i] * self.cov[i,i]
+            for j in range(self.dim):
+                if j == i:
+                    continue
+
+                A_ij = self.corr[i,j] * (np.sqrt(self.cov[i,i]) / np.sqrt(self.cov[j,j]))
+
+                B_ij = self.mean[i] - self.corr[i,j] * self.mean[j]* (np.sqrt(self.cov[i,i]) / np.sqrt(self.cov[j,j]))
+
+                three_vec[i] += A_ij * (self.mean[j]**3 + 3 * self.mean[j] * self.cov[j,j])
+                three_vec[i] += B_ij * (self.mean[j]**2 + self.cov[j,j])
+    
+        return three_vec
 
 
     def quadruple_gamma(self):

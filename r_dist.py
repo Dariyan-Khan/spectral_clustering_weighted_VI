@@ -7,13 +7,13 @@ class R():
     def __init__(self, d, α=None, β=None):
 
         if α is None:
-            self.α = 2
+            self.α = np.random.uniform(2, 5) # 2
         
         else:
             self.α = α
         
         if β is None:
-            self.β = 2
+            self.β = np.random.uniform(2, 5) # 2
         
         else:
             self.β = β

@@ -324,11 +324,15 @@ if __name__ == '__main__':
 
     ds = Synthetic_data(μ_1, μ_2, μ_3, prior, N_t=1000)
 
-    ds.dataset_vi(max_iter=2)
+    ds.dataset_vi(max_iter=10)
 
     true_labels = ds.true_labels
     max_probs = [np.argmax(z.probs) for z in ds.z_vars]
     label_difference = np.sum(np.array(true_labels) != np.array(max_probs))
+
+    print()
+    value_counts = np.bincount(max_probs)
+    print(value_counts)
     # print("Label Difference:", label_difference)
 
     # print("True Labels:", true_labels[:10])

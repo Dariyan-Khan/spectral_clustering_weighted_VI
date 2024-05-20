@@ -28,7 +28,10 @@ class Mu():
         n_k = 0
         B = 0
 
-    
+        for (i, data) in enumerate(datapoints.normed_embds):
+            z = z_vi_list[i]
+        #     print(z.probs[self.k])
+        # print("============================================")
 
         for (i, data) in enumerate(datapoints.normed_embds):
 
@@ -37,6 +40,11 @@ class Mu():
             # print("z_probs", z.probs)
 
             n_k += z.probs[self.k]
+
+            # print("full triplet", r_vi_list[i].first_moment, z.probs[self.k], data.T)
+
+            #print(z.probs[self.k], "z.probs[self.k]")
+        
             B += r_vi_list[i].first_moment * z.probs[self.k] * data.T
 
         # print("curr sigma_star_k", sigma_star_k)
@@ -48,6 +56,10 @@ class Mu():
         # print(np.linalg.det(sigma_inv_estimate), "det sigma_inv_estimate")
 
         print("last z:", z_vi_list[-1].probs)
+
+        print("B before:", B)
+        print("sigma inv estimate", sigma_inv_estimate)
+
         B = np.matmul(B, sigma_inv_estimate)
                 
         A = sigma_inv_estimate*n_k + np.linalg.inv(self.prior_cov)

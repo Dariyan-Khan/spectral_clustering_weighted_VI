@@ -46,8 +46,10 @@ class Z():
             P_k = P_k_1 + P_k_2
 
             # print("P_k", P_k)
+            # print("P_k", P_k)
 
-            self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) # / digamma(sum(phi.conc))
+
+            # self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) # / digamma(sum(phi.conc))
 
             log_probs[k] = P_k + np.log(phi.conc[k])
 

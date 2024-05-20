@@ -46,6 +46,11 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
 
 
 
+
+
+
+
+
 def sigma_inv_approx_old(sigma_star, γ, α=1): # α is the term added for convergence purposes
 
     d = sigma_star.d
