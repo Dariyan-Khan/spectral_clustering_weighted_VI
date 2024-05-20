@@ -30,17 +30,19 @@ class Z():
                 np.trace(
                     (sigma_star.scale /sigma_star.dof - self.d) + \
                     γ.cov + \
-                    γ.mean @ γ.mean.T   
+                    np.outer(γ.mean, γ.mean)   
                 ) - \
-                self.d 
+                self.d + sigma_star.nu
             )
 
             Sigma_inv = sigma_inv_approx(sigma_star, γ)
 
+            norm_datapoint = norm_datapoint.reshape(-1, 1)
+
             P_k_2 = -0.5 * (
-                r_i.second_moment * norm_datapoint.T @ Sigma_inv @ norm_datapoint - \
-                2 * r_i.first_moment * norm_datapoint.T @ Sigma_inv @ μ.mean + \
-                np.trace((μ.mean @ μ.mean.T + μ.cov) @ Sigma_inv)
+                r_i.second_moment * np.matmul(norm_datapoint.T, np.matmul(Sigma_inv, norm_datapoint)) - \
+                2 * r_i.first_moment * np.matmul(norm_datapoint.T, np.matmul(Sigma_inv, μ.mean)) + \
+                np.trace(np.matmul(np.matmul(μ.mean, μ.mean) + μ.cov, Sigma_inv))
             )
             
             P_k = P_k_1 + P_k_2
@@ -51,7 +53,9 @@ class Z():
 
             # self.probs[k] = np.exp(P_k) * digamma(phi.conc[k]) # / digamma(sum(phi.conc))
 
-            log_probs[k] = P_k + np.log(phi.conc[k])
+            log_probs[k] = P_k + phi.conc[k] # np.log(phi.conc[k])
+
+
 
             # print("self probbs in z_dist:", self.probs)
 

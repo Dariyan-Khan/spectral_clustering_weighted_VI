@@ -65,7 +65,7 @@ class Dataset():
 
         for z_var, label in zip(self.z_vars, gmm.labels):
             z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
-            z_var.probs[label] = 1 + np.random.uniform(-0.1, 0.1)
+            z_var.probs[label] = 1.0
             z_var.probs = z_var.probs / sum(z_var.probs)
 
 
@@ -147,6 +147,9 @@ class Dataset():
             print("μ_2_mean", self.means_vars[2].mean)
             print("μ_2_cov", self.means_vars[2].cov)
             print("_________________________")
+
+            # set the normed embeddings to be the transpose
+            # self.normed_embds = self.normed_embds.T
 
             for k in range(self.K):
                 self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)

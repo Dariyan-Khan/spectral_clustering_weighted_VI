@@ -28,8 +28,8 @@ class Mu():
         n_k = 0
         B = 0
 
-        for (i, data) in enumerate(datapoints.normed_embds):
-            z = z_vi_list[i]
+        # for (i, data) in enumerate(datapoints.normed_embds):
+        #     z = z_vi_list[i]
         #     print(z.probs[self.k])
         # print("============================================")
 
@@ -71,8 +71,9 @@ class Mu():
 
         print("A_inverse", A_inv)
     
+        B = np.reshape(B, (-1, 1))
 
-        self.mean = A_inv @ B 
+        self.mean = np.matmul(A_inv, B)
         self.cov = A_inv
 
         # self.mean = self.mean / np.linalg.norm(self.mean)

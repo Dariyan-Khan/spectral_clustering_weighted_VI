@@ -8,7 +8,8 @@ class Phi():
             α_prior = 1
         
         self.prior_conc = [α_prior/K for _ in range(K)] #conc= concentration parameter
-        self.conc = [α_prior/K for _ in range(K)] #at least just for initialisation
+        self.conc = np.array([α_prior/K + np.random.uniform(0.0, 0.1) for _ in range(K)]) # at least just for initialization with stochasticity
+        self.conc = self.conc / sum(self.conc)
         self.K = K # number of classes
 
         assert len(self.prior_conc) == self.K, "Number of classes must match number of prior parameters"

@@ -55,8 +55,13 @@ class R():
 
         sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
 
-        self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
-        self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
+        norm_datapoint = norm_datapoint.reshape(-1, 1)
+
+        self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
+        self.β = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+
+        # self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
+        # self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
 
         self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
         self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const

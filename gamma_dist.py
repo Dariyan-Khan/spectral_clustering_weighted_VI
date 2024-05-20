@@ -30,6 +30,8 @@ class Gamma():
         cov_mat = np.zeros((self.dim, self.dim))
         cov_mat_inner = np.zeros((self.dim, self.dim))
         
+        mean_vec = np.expand_dims(mean_vec, axis=1)
+
         for (i, data) in enumerate(datapoints.normed_embds):
             z = z_vi_list[i]
 
@@ -42,6 +44,15 @@ class Gamma():
             
 
             # I think need to change :self.d to:self.d - 1
+            # print(mean_vec.shape, "mean_vec shape")
+
+            print("heeee")
+
+            print(r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1])
+            print(r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1])
+            print(r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1])
+            print(μ_k.mean[:self.d-1] * μ_k.mean[self.d-1])
+
             mean_vec += z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
@@ -49,18 +60,18 @@ class Gamma():
                 μ_k.mean[:self.d-1] * μ_k.mean[self.d-1]
             )
 
+        # mean_vec = np.expand_dims(mean_vec, axis=1)
 
-
-        cov_mat = self.nu * sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale) @ cov_mat_inner
+        cov_mat = self.nu * sigma_star_k.dof * np.matmul(np.linalg.inv(sigma_star_k.scale), cov_mat_inner)
         cov_mat += np.linalg.inv(self.prior_cov)
 
         # print(np.linalg.det(cov_mat), "cov mat det")
 
         self.cov = np.linalg.inv(cov_mat)
 
-        mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.linalg.inv(sigma_star_k.scale) @ mean_vec
+        mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(sigma_star_k.scale), mean_vec)
 
-        self.mean = self.cov @ mean_vec
+        self.mean = np.matmul(self.cov, mean_vec)
 
         self.outer_product = self.outer_prod()
 
