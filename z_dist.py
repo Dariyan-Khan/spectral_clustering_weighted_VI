@@ -54,9 +54,6 @@ class Z():
 
         new_probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
         new_probs = new_probs.reshape(-1,1)
-        # print(aaa.shape, "aaa shape")
-
-        # print(np.exp(log_probs - np.logaddexp.reduce(log_probs)))
 
         self.probs = new_probs
 

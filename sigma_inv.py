@@ -41,11 +41,7 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
         A = second_moment + (first_moment @ γ_outer_product) + \
             (γ_outer_product @ first_moment) + ν * γ_quad
         
-        # print("matrix prod shape:",first_moment @ γ.mean)
-        # print("triple shape:", γ_triple)
-        # print("mean shape:", γ.mean)
 
-        # print(γ.mean.shape, "mean shape")
 
         γ_mean = γ.mean.reshape(-1, 1)
 
@@ -57,9 +53,6 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
         C = ν * np.trace(γ_outer_product) + ν**2
         C = np.array([[C]])
 
-        # print(A.shape, "A.shape")
-        # print(B.shape, "B shape")
-        # print(C.shape, "C shape")
 
         return np.block([[A, B], [B.T, C]])
     
