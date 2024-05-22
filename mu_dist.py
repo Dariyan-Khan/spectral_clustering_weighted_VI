@@ -28,10 +28,6 @@ class Mu():
         n_k = 0
         B = 0
 
-        # for (i, data) in enumerate(datapoints.normed_embds):
-        #     z = z_vi_list[i]
-        #     print(z.probs[self.k])
-        # print("============================================")
 
         for (i, data) in enumerate(datapoints.normed_embds):
 
@@ -41,9 +37,6 @@ class Mu():
 
             n_k += z.probs[self.k]
 
-            # print("full triplet", r_vi_list[i].first_moment, z.probs[self.k], data.T)
-
-            #print(z.probs[self.k], "z.probs[self.k]")
         
             B += r_vi_list[i].first_moment * z.probs[self.k] * data.T
 
@@ -51,9 +44,6 @@ class Mu():
 
         sigma_inv_estimate = sigma_inv_approx(sigma_star_k, γ_k, α=sigma_star_k.nu)
 
-        # print(sigma_inv_estimate, "sigma_inv_estimate")
-
-        # print(np.linalg.det(sigma_inv_estimate), "det sigma_inv_estimate")
 
         print("z shape", z_vi_list[-1].probs.shape)
         print("B shape", B.shape)

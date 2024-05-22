@@ -1,5 +1,5 @@
 import numpy as np
-from sigma_inv import sigma_inv_approx
+from sigma_inv import sigma_inv_approx, sigma_expectation
 from scipy.special import digamma
 
 class Z():
@@ -26,14 +26,29 @@ class Z():
             sigma_star = sigma_star_list[k]
             γ = γ_list[k]
 
-            P_k_1 = -0.5 * (
-                np.trace(
-                    (sigma_star.scale /sigma_star.dof - self.d) + \
-                    γ.cov + \
-                    np.outer(γ.mean, γ.mean)   
-                ) - \
-                self.d + sigma_star.nu
-            )
+            # Using the expectation of trace as an upper bound
+
+            # P_k_1 = -0.5 * (
+            #     np.trace(
+            #         (sigma_star.scale /sigma_star.dof - self.d) + \
+            #         γ.cov + \
+            #         np.outer(γ.mean, γ.mean)   
+            #     ) - \
+            #     self.d + sigma_star.nu
+            # )
+
+            # Using log of det of expecation
+
+            dett = np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu))
+
+            # print("determinent:", np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
+
+            if dett < 0:
+                print("det is negative:")
+                sigma_expectation(sigma_star, γ, ν=sigma_star.nu, verbose=True)
+                assert False
+
+            P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
 
             Sigma_inv = sigma_inv_approx(sigma_star, γ)
 
