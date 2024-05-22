@@ -331,7 +331,7 @@ if __name__ == '__main__':
 
     ds = Synthetic_data(μ_1, μ_2, μ_3, prior, N_t=1000)
 
-    ds.dataset_vi(max_iter=10)
+    ds.dataset_vi(max_iter=3)
 
     true_labels = ds.true_labels
     max_probs = [np.argmax(z.probs) for z in ds.z_vars]

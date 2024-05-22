@@ -64,8 +64,6 @@ class Sigma_Star():
             
 
 
-
-
     def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, datapoints):
 
         scale_mat = self.prior_scale
@@ -84,14 +82,17 @@ class Sigma_Star():
 
     
     def first_mom(self):
-        return self.scale / (self.dof - self.d)
+        return self.scale / (self.dof - self.dim - 1)
     
     def second_mom(self):
-        assert self.dof > self.d + 2, "Degrees of freedom must be greater than d + 2 for second moment formula"
+        assert self.dof > self.dim + 3, "Degrees of freedom must be greater than d + 2 for second moment formula"
 
-        c_2 = 1 / ((self.dof - self.d +1) * (self.dof - self.d) * (self.dof - self.d - 2))
+        #c_2 = 1 / ((self.dof - self.d +1) * (self.dof - self.d) * (self.dof - self.d - 2))
 
-        c_1 = (self.dof - self.d - 1) * c_2
+        c_2 = (self.dof - self.dim) * (self.dof - self.dim - 1) * (self.dof - self.dim - 3)
+        c_2 = 1 / c_2
+
+        c_1 = (self.dof - self.dim - 2) * c_2
 
         return (c_1+c_2) * (self.scale @ self.scale) + c_2 * np.trace(self.scale) * self.scale
 
