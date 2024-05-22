@@ -217,11 +217,12 @@ class Gamma():
                             (
                                 np.sqrt(self.cov[i,i]) * np.sqrt(self.cov[j,j]) * \
                                 self.mean[k] * (self.corr[i,j] * self.corr[j,k] - self.corr[i,k]) + \
+                                
                                 np.sqrt(self.cov[i,i]) * np.sqrt(self.cov[k,k]) * \
                                 self.mean[j] * (self.corr[i,k] * self.corr[j,k] - self.corr[i,j])
-                            ) / \
-                                ((1 - self.corr[j,k]**2) * np.sqrt(self.cov[j,j]) * np.sqrt(self.cov[k,k]))
-                    )
+                                
+                            ) / ((1 - self.corr[j,k]**2) * np.sqrt(self.cov[j,j]) * np.sqrt(self.cov[k,k]))
+                        )
                     )
 
         for i in range(self.dim):

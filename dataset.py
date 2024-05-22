@@ -34,7 +34,7 @@ class Dataset():
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
-        self.r_vars = [R(self.d) for _ in range(self.N)]
+        self.r_vars = [R(self.d-1) for _ in range(self.N)]
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
         self.phi_var = Phi(self.K)
 
@@ -290,10 +290,14 @@ if __name__ == '__main__':
 #     ds = Dataset(
 #         adj_matrix,
 #         emb_dim=3,
-#         K=2
+#         K=3
 #     )
 
-#     ds.dataset_vi(max_iter=100)
+#     ds.dataset_vi(max_iter=10)
+
+#     print(ds.means_vars[0].mean, ds.means_vars[0].cov)
+#     print(ds.means_vars[1].mean, ds.means_vars[1].cov)
+#     print(ds.means_vars[2].mean, ds.means_vars[2].cov)
 
 #     print(ds.means_vars[1].mean, ds.means_vars[1].cov)
 
@@ -336,11 +340,11 @@ if __name__ == '__main__':
     print()
     value_counts = np.bincount(max_probs)
     print(value_counts)
-    # print("Label Difference:", label_difference)
+    print("Label Difference:", label_difference)
 
-    # print("True Labels:", true_labels[:10])
+    print("True Labels:", true_labels[:10])
 
-    # print("Max Probs:", max_probs[:100])
+    print("Max Probs:", max_probs[:100])
 
 
 

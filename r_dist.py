@@ -26,7 +26,7 @@ class R():
     def compute_Id(self, order):
         # Compute I_0 and I_1 which are needed for starting the recursion
         I_0 = np.sqrt(np.pi / self.α) * norm.cdf(self.β * np.sqrt(2 * self.α))
-        I_1 = self.β * I_0 + np.exp(-self.α * self.β**2 / (2 * self.α)) / (2 * self.α)
+        I_1 = self.β * I_0 + np.exp(-self.α * self.β**2) / (2 * self.α)
         
         # If d is 0 or 1, we can return I_0 or I_1 directly
         if order == 0:
@@ -46,23 +46,55 @@ class R():
         # The current variable now holds the value of I_d
         return current
     
+    # def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, norm_datapoint):
+
+    #     data_group = np.argmax(z_i.probs)
+    #     sigma = sigma_star_vi_list[data_group]
+    #     γ = γ_vi_list[data_group]
+    #     μ = μ_vi_list[data_group]
+
+    #     sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
+
+    #     norm_datapoint = norm_datapoint.reshape(-1, 1)
+
+    #     self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
+    #     self.β = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+
+    #     # self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
+    #     # self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
+
+    #     self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+    #     self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
+    #     self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
+    
     def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, norm_datapoint):
 
-        data_group = np.argmax(z_i.probs)
-        sigma = sigma_star_vi_list[data_group]
-        γ = γ_vi_list[data_group]
-        μ = μ_vi_list[data_group]
+        new_α = 0
+        new_β = 0
 
-        sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
+        for k in range (0, len(z_i.probs)):
+            data_group = k
+            sigma = sigma_star_vi_list[data_group]
+            γ = γ_vi_list[data_group]
+            μ = μ_vi_list[data_group]
 
-        norm_datapoint = norm_datapoint.reshape(-1, 1)
+            sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
 
-        self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
-        self.β = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            norm_datapoint = norm_datapoint.reshape(-1, 1)
 
-        # self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
-        # self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
+            # self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
+            # self.β = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
 
+            new_α +=  z_i.probs[data_group] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
+            new_β += z_i.probs[data_group] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+
+            # self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
+            # self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
+
+        
+        self.α = new_α
+        self.β = new_β
+        
         self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
         self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
         self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
