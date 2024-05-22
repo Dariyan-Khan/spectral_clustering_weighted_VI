@@ -19,7 +19,7 @@ class Z():
     
     def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi):
 
-        log_probs = [1/self.K for _ in range(self.K)]
+        log_probs = np.array([1/self.K for _ in range(self.K)])
 
         for k in range(self.K):
             μ = μ_list[k]
@@ -42,7 +42,7 @@ class Z():
             P_k_2 = -0.5 * (
                 r_i.second_moment * np.matmul(norm_datapoint.T, np.matmul(Sigma_inv, norm_datapoint)) - \
                 2 * r_i.first_moment * np.matmul(norm_datapoint.T, np.matmul(Sigma_inv, μ.mean)) + \
-                np.trace(np.matmul(np.matmul(μ.mean, μ.mean) + μ.cov, Sigma_inv))
+                np.trace(np.matmul( np.outer(μ.mean, μ.mean) + μ.cov, Sigma_inv))
             )
             
             P_k = P_k_1 + P_k_2
@@ -55,13 +55,19 @@ class Z():
 
             log_probs[k] = P_k + phi.conc[k] # np.log(phi.conc[k])
 
-
-
-            # print("self probbs in z_dist:", self.probs)
-
         
+
+        new_probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
+        new_probs = new_probs.reshape(-1,1)
+        # print(aaa.shape, "aaa shape")
+
+        # print(np.exp(log_probs - np.logaddexp.reduce(log_probs)))
+
+        #assert False
+
         # self.probs = self.probs / sum(self.probs)
-        self.probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
+        self.probs = new_probs
+        # self.probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
 
             
         

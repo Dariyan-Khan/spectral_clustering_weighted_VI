@@ -55,6 +55,9 @@ class Mu():
 
         # print(np.linalg.det(sigma_inv_estimate), "det sigma_inv_estimate")
 
+        print("z shape", z_vi_list[-1].probs.shape)
+        print("B shape", B.shape)
+
         print("last z:", z_vi_list[-1].probs)
 
         print("B before:", B)

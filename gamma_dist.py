@@ -46,12 +46,12 @@ class Gamma():
             # I think need to change :self.d to:self.d - 1
             # print(mean_vec.shape, "mean_vec shape")
 
-            print("heeee")
+            # print("heeee")
 
-            print(r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1])
-            print(r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1])
-            print(r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1])
-            print(μ_k.mean[:self.d-1] * μ_k.mean[self.d-1])
+            # print("data shape:" , data.shape)
+            # print("μ_k.mean shape:", μ_k.mean[:self.d-1].shape)
+
+            data = data.reshape(-1, 1)
 
             mean_vec += z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
@@ -72,6 +72,7 @@ class Gamma():
         mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(sigma_star_k.scale), mean_vec)
 
         self.mean = np.matmul(self.cov, mean_vec)
+        # self.mean = self.mean.reshape(-1,1)
 
         self.outer_product = self.outer_prod()
 
@@ -87,7 +88,7 @@ class Gamma():
     
 
     def outer_prod(self):
-        return self.cov + self.mean @ self.mean.T
+        return self.cov + np.outer(self.mean, self.mean)
 
 
     def three_gamma(self):
@@ -127,6 +128,8 @@ class Gamma():
                 three_vec[i] += A_ij * (self.mean[j]**3 + 3 * self.mean[j] * self.cov[j,j])
                 three_vec[i] += B_ij * (self.mean[j]**2 + self.cov[j,j])
     
+        three_vec = three_vec.reshape(-1, 1)
+
         return three_vec
 
 
