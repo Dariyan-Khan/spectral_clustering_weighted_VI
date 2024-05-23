@@ -9,7 +9,7 @@ class GMM_Init():
         self.fitted_gmm = gmm.fit(dataset)
 
         self.cluster_centres = self.fitted_gmm.means_
-        self.cluster_covs = self.fitted_gmm.covariances_
+        self.cluster_covs = 100.0 * self.fitted_gmm.covariances_
 
         self.gamma_estimates = np.array([self.gamma_scaled(cov_mat) for cov_mat in self.cluster_covs])
 

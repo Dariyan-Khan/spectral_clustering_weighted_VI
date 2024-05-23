@@ -69,6 +69,7 @@ class Dataset():
             z_var.probs = z_var.probs / sum(z_var.probs)
         
         
+        # initialise the mean gamma and sigma
 
 
         for k in range(self.K):
@@ -97,6 +98,34 @@ class Dataset():
 
             # print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
             # print("gamma cov:", gamma_cov)
+
+
+        # initialise the r variables
+
+        full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in gmm.cluster_covs]
+
+        print("sigma inv estimates:", full_sigma_inv_estimates)
+
+        for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
+            curr_data = self.normed_embds[i]
+            r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+
+            beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], self.means_vars[label].mean))
+            beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+
+            r_var.beta = beta_numerator / beta_denom
+
+            r_var.update_moments()
+        
+        # initialise phi variables
+
+        for k in range(self.K):
+            # count number of labels in group k
+            num_labels = sum([1 for lab in gmm.labels if lab == k])
+            self.phi_var.conc[k] = num_labels
+
+
+
 
     
     def k_means_init(self, clusters_to_check=list(range(2, 11))):
@@ -169,6 +198,8 @@ class Dataset():
 
                 _____________________________________________________________________
 
+                    r_first_alpha: {[x.alpha for x in self.r_vars[:10]]}
+                    r_first_beta: {[x.beta for x in self.r_vars[:10]]}
                     r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
                     r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
 
@@ -194,17 +225,23 @@ class Dataset():
             # set the normed embeddings to be the transpose
             # self.normed_embds = self.normed_embds.T
 
+            for i in range(self.N):
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
+            
+            self.phi_var.vi(self.z_vars)
+
             for k in range(self.K):
 
                 self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
 
-            for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
+            # for i in range(self.N):
+            #     self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+            #     self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
             
-            self.phi_var.vi(self.z_vars)
+            # self.phi_var.vi(self.z_vars)
             
             print(f"""Iteration {epoch} results:
                   
@@ -244,7 +281,9 @@ class Dataset():
                     First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
 
                 _____________________________________________________________________
-
+                    
+                    r_first_alpha: {[x.alpha for x in self.r_vars[:10]]}
+                    r_first_beta: {[x.beta for x in self.r_vars[:10]]}
                     r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
                     r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
 
