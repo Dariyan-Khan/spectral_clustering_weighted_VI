@@ -61,20 +61,14 @@ class Dataset():
         gamma_cov = gmm.gamma_prior_cov_estimate()
         scale_mat, dof = gmm.sigma_prior_params_estimate()
 
-        # print("mu_cov", mu_cov)
+        # initialise the z variables
 
         for z_var, label in zip(self.z_vars, gmm.labels):
             z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
             z_var.probs[label] = 1.0
             z_var.probs = z_var.probs / sum(z_var.probs)
-
-
-        # print('mu_cov gmm', mu_cov)
-
-
-        # print('scale_mat gmm', scale_mat)
-        # print('dof gmm', dof)
-
+        
+        
 
 
         for k in range(self.K):
@@ -82,10 +76,7 @@ class Dataset():
             self.means_vars[k].mean = gmm.cluster_centres[k]
             self.means_vars[k].cov =  mu_cov
 
-            self.means_vars[k].cov = mu_cov
-
             #print(f"mu_cov {k} det:", np.linalg.det(mu_cov))
-
 
             self.sigma_star_vars[k].prior_scale = scale_mat
             self.sigma_star_vars[k].prior_dof = dof
@@ -136,22 +127,75 @@ class Dataset():
 
         self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
 
-        for _ in tqdm(range(max_iter), desc="Performing VI"):
 
-            print("μ_0_mean", self.means_vars[0].mean)
-            print("μ_0_cov", self.means_vars[0].cov)
-            print("_________________________")
-            print("μ_1_mean", self.means_vars[1].mean)
-            print("μ_1_cov", self.means_vars[1].cov)
-            print("_________________________")
-            print("μ_2_mean", self.means_vars[2].mean)
-            print("μ_2_cov", self.means_vars[2].cov)
-            print("_________________________")
+
+
+        print(f"""Initial values:
+                  
+                    μ_0_mean: {self.means_vars[0].mean}
+                    μ_0_cov: {self.means_vars[0].cov}
+
+                    μ_1_mean: {self.means_vars[1].mean}
+                    μ_1_cov: {self.means_vars[1].cov}
+
+                    μ_2_mean: {self.means_vars[2].mean}
+                    μ_2_cov: {self.means_vars[2].cov}
+
+                 _____________________________________________________________________
+
+                    sigma_0_scale: {self.sigma_star_vars[0].scale}
+                    sigma_0_dof: {self.sigma_star_vars[0].dof}
+
+                    sigma_1_scale: {self.sigma_star_vars[1].scale}
+                    sigma_1_dof: {self.sigma_star_vars[1].dof}
+
+                    sigma_2_scale: {self.sigma_star_vars[2].scale}
+                    sigma_2_dof: {self.sigma_star_vars[2].dof}
+
+                _____________________________________________________________________
+
+                    gamma_0_mean: {self.gamma_vars[0].mean}
+                    gamma_0_cov: {self.gamma_vars[0].cov}
+
+                    gamma_1_mean: {self.gamma_vars[1].mean}
+                    gamma_1_cov: {self.gamma_vars[1].cov}
+
+                    gamma_2_mean: {self.gamma_vars[2].mean}
+                    gamma_2_cov: {self.gamma_vars[2].cov}
+
+                _____________________________________________________________________
+
+                    First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
+
+                _____________________________________________________________________
+
+                    r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
+                    r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
+
+                 _____________________________________________________________________
+
+                    phi_probs: {self.phi_var.conc}
+                  
+                  
+                  """)
+
+        for epoch in tqdm(range(max_iter), desc="Performing VI"):
+
+            # print("μ_0_mean", self.means_vars[0].mean)
+            # print("μ_0_cov", self.means_vars[0].cov)
+            # print("_________________________")
+            # print("μ_1_mean", self.means_vars[1].mean)
+            # print("μ_1_cov", self.means_vars[1].cov)
+            # print("_________________________")
+            # print("μ_2_mean", self.means_vars[2].mean)
+            # print("μ_2_cov", self.means_vars[2].cov)
+            # print("_________________________")
 
             # set the normed embeddings to be the transpose
             # self.normed_embds = self.normed_embds.T
 
             for k in range(self.K):
+
                 self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
@@ -159,7 +203,57 @@ class Dataset():
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
-                self.phi_var.vi(self.z_vars)
+            
+            self.phi_var.vi(self.z_vars)
+            
+            print(f"""Iteration {epoch} results:
+                  
+                    μ_0_mean: {self.means_vars[0].mean}
+                    μ_0_cov: {self.means_vars[0].cov}
+
+                    μ_1_mean: {self.means_vars[1].mean}
+                    μ_1_cov: {self.means_vars[1].cov}
+
+                    μ_2_mean: {self.means_vars[2].mean}
+                    μ_2_cov: {self.means_vars[2].cov}
+
+                 _____________________________________________________________________
+
+                    sigma_0_scale: {self.sigma_star_vars[0].scale}
+                    sigma_0_dof: {self.sigma_star_vars[0].dof}
+
+                    sigma_1_scale: {self.sigma_star_vars[1].scale}
+                    sigma_1_dof: {self.sigma_star_vars[1].dof}
+
+                    sigma_2_scale: {self.sigma_star_vars[2].scale}
+                    sigma_2_dof: {self.sigma_star_vars[2].dof}
+
+                _____________________________________________________________________
+
+                    gamma_0_mean: {self.gamma_vars[0].mean}
+                    gamma_0_cov: {self.gamma_vars[0].cov}
+
+                    gamma_1_mean: {self.gamma_vars[1].mean}
+                    gamma_1_cov: {self.gamma_vars[1].cov}
+
+                    gamma_2_mean: {self.gamma_vars[2].mean}
+                    gamma_2_cov: {self.gamma_vars[2].cov}
+
+                _____________________________________________________________________
+
+                    First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
+
+                _____________________________________________________________________
+
+                    r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
+                    r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
+
+                 _____________________________________________________________________
+
+                    phi_probs: {self.phi_var.conc}
+                  
+                  
+                  """)
 
 
     
@@ -325,11 +419,24 @@ if __name__ == '__main__':
     μ_2 = np.array([0.4,0.45,0.15])
     μ_3 = np.array([0.1,0.3,0.6])
 
+    μ_1 = μ_1 / np.linalg.norm(μ_1)
+    μ_2 = μ_2 / np.linalg.norm(μ_2)
+    μ_3 = μ_3 / np.linalg.norm(μ_3)
+
     α = 7
     β = 2
     prior = lambda : beta.rvs(α, β)
 
     ds = Synthetic_data(μ_1, μ_2, μ_3, prior, N_t=1000)
+
+    # Set means to be the true value and see what happens
+
+    μ_list = [μ_1, μ_2, μ_3]
+
+    for k in range(ds.K):
+        ds.means_vars[k].mean = μ_list[k]
+
+    
 
     ds.dataset_vi(max_iter=3)
 

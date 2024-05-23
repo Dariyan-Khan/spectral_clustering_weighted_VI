@@ -44,25 +44,24 @@ class Mu():
 
         sigma_inv_estimate = sigma_inv_approx(sigma_star_k, γ_k, α=sigma_star_k.nu)
 
+        # print("z shape", z_vi_list[-1].probs.shape)
+        # print("B shape", B.shape)
 
-        print("z shape", z_vi_list[-1].probs.shape)
-        print("B shape", B.shape)
+        # print("last z:", z_vi_list[-1].probs)
 
-        print("last z:", z_vi_list[-1].probs)
-
-        print("B before:", B)
-        print("sigma inv estimate", sigma_inv_estimate)
+        # print("B before:", B)
+        # print("sigma inv estimate", sigma_inv_estimate)
 
         B = np.matmul(B, sigma_inv_estimate)
                 
         A = sigma_inv_estimate*n_k + np.linalg.inv(self.prior_cov)
         A_inv = np.linalg.inv(A)
 
-        print()
+        # print()
 
-        print("B_matrix", B)
+        # print("B_matrix", B)
 
-        print("A_inverse", A_inv)
+        # print("A_inverse", A_inv)
     
         B = np.reshape(B, (-1, 1))
 

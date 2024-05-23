@@ -76,7 +76,7 @@ class Gamma():
 
         self.outer_product = self.outer_prod()
 
-        print("gamma cov", self.cov)
+        # print("gamma cov", self.cov)
 
         std_devs = np.sqrt(np.diag(self.cov))
 
@@ -220,7 +220,7 @@ class Gamma():
                                 
                                 np.sqrt(self.cov[i,i]) * np.sqrt(self.cov[k,k]) * \
                                 self.mean[j] * (self.corr[i,k] * self.corr[j,k] - self.corr[i,j])
-                                
+
                             ) / ((1 - self.corr[j,k]**2) * np.sqrt(self.cov[j,j]) * np.sqrt(self.cov[k,k]))
                         )
                     )

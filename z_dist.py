@@ -27,7 +27,6 @@ class Z():
             γ = γ_list[k]
 
             # Using the expectation of trace as an upper bound
-
             # P_k_1 = -0.5 * (
             #     np.trace(
             #         (sigma_star.scale /sigma_star.dof - self.d) + \
