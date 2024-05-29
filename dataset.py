@@ -70,8 +70,7 @@ class Dataset():
 
             predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
             predicted_probs = predicted_probs[0]
-            z_var.probs = self.gmm.fitted_gmm.predict_proba(data)
-
+            z_var.probs = predicted_probs
             # z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
             # z_var.probs[label] = 1.0
             # z_var.probs = z_var.probs / sum(z_var.probs)
@@ -234,8 +233,6 @@ class Dataset():
                     μ_1_mean: {self.means_vars[1].mean}
                     μ_1_cov: {self.means_vars[1].cov}
 
-                    μ_2_mean: {self.means_vars[2].mean}
-                    μ_2_cov: {self.means_vars[2].cov}
 
                  _____________________________________________________________________
 
@@ -245,8 +242,6 @@ class Dataset():
                     sigma_1_scale: {self.sigma_star_vars[1].scale}
                     sigma_1_dof: {self.sigma_star_vars[1].dof}
 
-                    sigma_2_scale: {self.sigma_star_vars[2].scale}
-                    sigma_2_dof: {self.sigma_star_vars[2].dof}
 
                 _____________________________________________________________________
 
@@ -255,9 +250,6 @@ class Dataset():
 
                     gamma_1_mean: {self.gamma_vars[1].mean}
                     gamma_1_cov: {self.gamma_vars[1].cov}
-
-                    gamma_2_mean: {self.gamma_vars[2].mean}
-                    gamma_2_cov: {self.gamma_vars[2].cov}
 
                 _____________________________________________________________________
 

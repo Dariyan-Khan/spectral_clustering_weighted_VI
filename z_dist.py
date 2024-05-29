@@ -77,7 +77,19 @@ class Z():
             print(f"log_probs: {log_probs}")
             print(f"new probabilities: {new_probs}")
             print()
+
+        # print(f"==>> new_probs.shape: {new_probs.shape}")
+        # print(f"==>> new_probs: {new_probs}")
+
+        # print("""
+              
+        #       After reshaping:
+              
+        #       """)
+
         new_probs = new_probs.reshape(-1,1)
+        print(f"==>> new_probs.shape: {new_probs.shape}")
+        print(f"==>> new_probs: {new_probs}")
 
         self.probs = new_probs
 
