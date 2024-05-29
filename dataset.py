@@ -385,7 +385,9 @@ if __name__ == '__main__':
     cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
     cov_2 = np.array([[0.1, 0.05], [0.05, 0.1]])
 
-    gamma_prior_cov = np.array([[0.1]])
+    gamma_prior_cov = np.array([0.1])
+
+    ν = cov_1[1,1]
 
     # α = 7
     # β = 2
@@ -402,36 +404,43 @@ if __name__ == '__main__':
     assumed_dof = ds.sigma_star_vars[0].dof
     print(f"==>> assumed_dof: {assumed_dof}")
 
+    print(f"==>> ds.gamma_vars[0].prior_cov: {ds.gamma_vars[0].prior_cov}")
+
+    print(f"==>> ds.sigma_star_vars[0].prior_scale: {ds.sigma_star_vars[0].prior_scale}")
+    print(f"==>> ds.sigma_star_vars[0].scale: {ds.sigma_star_vars[0].scale}")
+
+
+
 
     ds.means_vars[0].prior_cov = cov_1
     ds.means_vars[0].mean = μ_1
     ds.means_vars[0].cov = cov_1
 
-    ds.sigma_star_vars[0].prior_scale = cov_1
-    ds.sigma_star_vars[0].scale = cov_1 * (assumed_dof - ds.d)
-    ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
-
-    ds.gamma_vars[0].prior_cov = gamma_prior_cov
-    ds.gamma_vars[0].mean = np.array([cov_1[0, 1]])
-    ds.gamma_vars[0].cov = gamma_prior_cov
+    ds.gamma_vars[0].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
+    ds.gamma_vars[0].mean = np.array([cov_1[0, 1]]) / np.sqrt(ν)
+    ds.gamma_vars[0].cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[0].nu = cov_1[-1,-1]
 
+    ds.sigma_star_vars[0].prior_scale = np.array([cov_1[0,0] * (assumed_dof - ds.d)])
+    ds.sigma_star_vars[0].scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
+    ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
+
     
-    ds.means_vars[1].prior_cov = cov_2
+    ds.means_vars[1].prior_cov = cov_2[1,1]
     ds.means_vars[1].mean = μ_2
     ds.means_vars[1].cov = cov_2
 
-    ds.sigma_star_vars[1].prior_scale = cov_2
-    ds.sigma_star_vars[1].scale = cov_2 * (assumed_dof - ds.d)
-    ds.sigma_star_vars[1].nu = cov_2[-1,-1]                
-
-    ds.gamma_vars[1].prior_cov = gamma_prior_cov
-    ds.gamma_vars[1].mean = np.array([cov_2[0, 1]])
-    ds.gamma_vars[1].cov = gamma_prior_cov
+    ds.gamma_vars[1].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
+    ds.gamma_vars[1].mean = np.array([cov_2[0, 1]]) / np.sqrt(ν)
+    ds.gamma_vars[1].cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[1].nu = cov_2[-1,-1]
 
+    ds.sigma_star_vars[1].prior_scale = np.array([cov_2[0,0] - ds.gamma_vars[0].mean ** 2])
+    ds.sigma_star_vars[1].scale = np.array([[cov_2[0,0] * (assumed_dof - ds.d)]])
+    ds.sigma_star_vars[1].nu = cov_2[-1,-1]
 
-    ds.dataset_vi(max_iter=3)
+
+    ds.dataset_vi(max_iter=3, run_init=False)
 
 
 

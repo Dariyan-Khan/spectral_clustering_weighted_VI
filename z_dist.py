@@ -62,9 +62,9 @@ class Z():
             
             P_k = P_k_1 + P_k_2
 
-            if verbose:
-                print(f"Class {k}: P_k={P_k} and digamma(phi.conc[k])={digamma(phi.conc[k])}")
-                print()
+            # if verbose:
+            #     print(f"Class {k}: P_k={P_k} and digamma(phi.conc[k])={digamma(phi.conc[k])}")
+            #     print()
 
 
             log_probs[k] = P_k + digamma(phi.conc[k]) # np.log(phi.conc[k])
@@ -88,8 +88,8 @@ class Z():
         #       """)
 
         new_probs = new_probs.reshape(-1,1)
-        print(f"==>> new_probs.shape: {new_probs.shape}")
-        print(f"==>> new_probs: {new_probs}")
+        # print(f"==>> new_probs.shape: {new_probs.shape}")
+        # print(f"==>> new_probs: {new_probs}")
 
         self.probs = new_probs
 
