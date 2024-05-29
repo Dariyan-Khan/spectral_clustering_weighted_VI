@@ -157,13 +157,10 @@ class Dataset():
         
         return best_k_means, best_num_clusters
     
-    def dataset_vi(self, max_iter=1000):
+    def dataset_vi(self, max_iter=1000, run_init=True):
 
-
-        self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
-
-
-
+        if run_init:
+            self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
 
         print(f"""Initial values:
                   
@@ -329,7 +326,8 @@ class Synthetic_data(Dataset):
 
     def simulate_adj_mat(self, prior, μ_1, μ_2):
         μ_mat = np.stack((μ_1, μ_2), axis=1)
-        bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+        # bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+        bern_params = [(prior(), i % 2) for i in range(self.N_t)]
         adj_mat = np.zeros((self.N_t, self.N_t))
 
         for i in range(self.N_t):
@@ -367,10 +365,6 @@ class Synthetic_data(Dataset):
 
         best_orthog_mat = orthogonal_procrustes(spectral_embedding, true_means)
 
-        # print("best_orthog_mat", best_orthog_mat[0])
-
-        
-
         spectral_embedding = spectral_embedding @ best_orthog_mat[0]
 
         # print("spectral_embedding", spectral_embedding)
@@ -388,20 +382,55 @@ if __name__ == '__main__':
     μ_1 = μ_1 / np.linalg.norm(μ_1)
     μ_2 = μ_2 / np.linalg.norm(μ_2)
 
-    α = 7
-    β = 2
-    prior = lambda : beta.rvs(α, β)
+    cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_2 = np.array([[0.1, 0.05], [0.05, 0.1]])
+
+    gamma_prior_cov = np.array([[0.1]])
+
+    # α = 7
+    # β = 2
+    # prior = lambda : beta.rvs(α, β)
+
+    prior = lambda : 0.5
 
     ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
 
-    # Set means to be the true value and see what happens
+    # ds.dataset_vi(max_iter=3)   
 
-    # μ_list = [μ_1, μ_2]
+    ds.gaussian_mm_init()
 
-    # for k in range(ds.K):
-    #     ds.means_vars[k].mean = μ_list[k]
+    assumed_dof = ds.sigma_star_vars[0].dof
+    print(f"==>> assumed_dof: {assumed_dof}")
+
+
+    ds.means_vars[0].prior_cov = cov_1
+    ds.means_vars[0].mean = μ_1
+    ds.means_vars[0].cov = cov_1
+
+    ds.sigma_star_vars[0].prior_scale = cov_1
+    ds.sigma_star_vars[0].scale = cov_1 * (assumed_dof - ds.d)
+    ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
+
+    ds.gamma_vars[0].prior_cov = gamma_prior_cov
+    ds.gamma_vars[0].mean = np.array([cov_1[0, 1]])
+    ds.gamma_vars[0].cov = gamma_prior_cov
+    ds.gamma_vars[0].nu = cov_1[-1,-1]
 
     
+    ds.means_vars[1].prior_cov = cov_2
+    ds.means_vars[1].mean = μ_2
+    ds.means_vars[1].cov = cov_2
+
+    ds.sigma_star_vars[1].prior_scale = cov_2
+    ds.sigma_star_vars[1].scale = cov_2 * (assumed_dof - ds.d)
+    ds.sigma_star_vars[1].nu = cov_2[-1,-1]                
+
+    ds.gamma_vars[1].prior_cov = gamma_prior_cov
+    ds.gamma_vars[1].mean = np.array([cov_2[0, 1]])
+    ds.gamma_vars[1].cov = gamma_prior_cov
+    ds.gamma_vars[1].nu = cov_2[-1,-1]
+
+
     ds.dataset_vi(max_iter=3)
 
 
