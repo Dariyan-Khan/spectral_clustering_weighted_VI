@@ -17,7 +17,7 @@ class Z():
         self.d = d
 
     
-    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi):
+    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False):
 
         log_probs = np.array([1/self.K for _ in range(self.K)])
 
@@ -27,27 +27,28 @@ class Z():
             γ = γ_list[k]
 
             # Using the expectation of trace as an upper bound
-            # P_k_1 = -0.5 * (
-            #     np.trace(
-            #         (sigma_star.scale /sigma_star.dof - self.d) + \
-            #         γ.cov + \
-            #         np.outer(γ.mean, γ.mean)   
-            #     ) - \
-            #     self.d + sigma_star.nu
-            # )
+            P_k_1 = -0.5 * (
+                np.trace(
+                    (sigma_star.scale /(sigma_star.dof - self.d)) + \
+                    γ.cov + \
+                    np.outer(γ.mean, γ.mean)   
+                ) - \
+                self.d + sigma_star.nu
+            )
 
             # Using log of det of expecation
 
-            dett = np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu))
+            
 
             # print("determinent:", np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
+            
+            # dett = np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu))
+            # if dett < 0:
+            #     print("det is negative:")
+            #     sigma_expectation(sigma_star, γ, ν=sigma_star.nu, verbose=True)
+            #     assert False
 
-            if dett < 0:
-                print("det is negative:")
-                sigma_expectation(sigma_star, γ, ν=sigma_star.nu, verbose=True)
-                assert False
-
-            P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
+            # P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
 
             Sigma_inv = sigma_inv_approx(sigma_star, γ)
 
@@ -61,12 +62,21 @@ class Z():
             
             P_k = P_k_1 + P_k_2
 
+            if verbose:
+                print(f"Class {k}: P_k={P_k} and digamma(phi.conc[k])={digamma(phi.conc[k])}")
+                print()
+
 
             log_probs[k] = P_k + digamma(phi.conc[k]) # np.log(phi.conc[k])
 
         
 
         new_probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
+
+        if verbose:
+            print(f"log_probs: {log_probs}")
+            print(f"new probabilities: {new_probs}")
+            print()
         new_probs = new_probs.reshape(-1,1)
 
         self.probs = new_probs

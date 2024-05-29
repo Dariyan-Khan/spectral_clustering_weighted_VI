@@ -63,10 +63,14 @@ class Dataset():
 
         # initialise the z variables
 
-        for z_var, label in zip(self.z_vars, gmm.labels):
-            z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
-            z_var.probs[label] = 1.0
-            z_var.probs = z_var.probs / sum(z_var.probs)
+        gmm.predict_proba(data)
+
+        for z_var, data in zip(self.z_vars, self.normed_embds):
+            z_var.probs = gmm.predict_proba(data)
+
+            # z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
+            # z_var.probs[label] = 1.0
+            # z_var.probs = z_var.probs / sum(z_var.probs)
         
         
         # initialise the mean gamma and sigma
@@ -122,8 +126,7 @@ class Dataset():
         for k in range(self.K):
             # count number of labels in group k
             num_labels = sum([1 for lab in gmm.labels if lab == k])
-            self.phi_var.conc[k] = num_labels
-
+            self.phi_var.conc[k] = num_labels + self.phi_var.prior_conc[k]
 
 
 
@@ -210,7 +213,8 @@ class Dataset():
                   
                   """)
 
-        for epoch in tqdm(range(max_iter), desc="Performing VI"):
+        # for epoch in tqdm(range(max_iter), desc="Performing VI"):
+        for epoch in range(max_iter):
 
             # print("μ_0_mean", self.means_vars[0].mean)
             # print("μ_0_cov", self.means_vars[0].cov)
@@ -225,11 +229,11 @@ class Dataset():
             # set the normed embeddings to be the transpose
             # self.normed_embds = self.normed_embds.T
 
-            for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
+            # for i in range(self.N):
+            #     self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+            #     self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
             
-            self.phi_var.vi(self.z_vars)
+            # self.phi_var.vi(self.z_vars)
 
             for k in range(self.K):
 
@@ -237,11 +241,11 @@ class Dataset():
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
 
-            # for i in range(self.N):
-            #     self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-            #     self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
+            for i in range(self.N):
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
-            # self.phi_var.vi(self.z_vars)
+            self.phi_var.vi(self.z_vars)
             
             print(f"""Iteration {epoch} results:
                   
