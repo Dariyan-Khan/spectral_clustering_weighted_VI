@@ -71,6 +71,13 @@ class Sigma_Star():
 
         for (i, data) in enumerate(datapoints.normed_embds):
             z = z_vi_list[i]
+
+            print(f"==>> z.probs[self.k].shape: {z.probs[self.k].shape}")
+            print(f"==>> z.probs: {z.probs}")
+            print(f"==>> z.probs[self.k]: {z.probs[self.k]}")
+            print(f"==>> self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data).shape: {self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data).shape}")
+            print(f"==>> scale_mat.shape: {scale_mat.shape}")
+
             scale_mat += z.probs[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
             dof += z.probs[self.k]
         

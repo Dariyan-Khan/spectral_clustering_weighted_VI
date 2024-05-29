@@ -5,6 +5,8 @@ class GMM_Init():
 
     def __init__(self, dataset, n_components=2):
         self.dataset = dataset
+
+        # gmm = GaussianMixture(n_components=n_components, reg_covar = 0.085, covariance_type='full')
         gmm = GaussianMixture(n_components=n_components, covariance_type='full')
         self.fitted_gmm = gmm.fit(dataset)
 
@@ -31,10 +33,28 @@ class GMM_Init():
         return γ
 
     
+    # def gamma_prior_cov_estimate(self):
+    #     # print("self.gamma_estimates: ", self.gamma_estimates)
+    #     gamma_cov_estimate = np.cov(self.gamma_estimates.T)
+
+    #     if np.isscalar(gamma_cov_estimate):
+    #         gamma_cov_estimate = np.array([[gamma_cov_estimate]])
+    #     else:
+    #         print(f"==>> gamma_cov_estimate: {gamma_cov_estimate}")
+    #         print(f"==>> np.isscalar(gamma_cov_estimate): {np.isscalar(gamma_cov_estimate)}")
+    #         gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
+
+    #     return gamma_cov_estimate
+
     def gamma_prior_cov_estimate(self):
-        # print("self.gamma_estimates: ", self.gamma_estimates)
         gamma_cov_estimate = np.cov(self.gamma_estimates.T)
-        gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
+        
+        # Check if gamma_cov_estimate is a scalar or a 0-dimensional array
+        if np.ndim(gamma_cov_estimate) == 0 or gamma_cov_estimate.shape == ():
+            gamma_cov_estimate = np.array([[gamma_cov_estimate]])
+        else:
+            gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
+
         return gamma_cov_estimate
 
 
