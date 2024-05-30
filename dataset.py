@@ -439,6 +439,27 @@ if __name__ == '__main__':
     ds.sigma_star_vars[1].scale = np.array([[cov_2[0,0] * (assumed_dof - ds.d)]])
     ds.sigma_star_vars[1].nu = cov_2[-1,-1]
 
+    full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_1, cov_2]]
+
+    for i, (r_var, label) in enumerate(zip(ds.r_vars, ds.gmm.labels)):
+        curr_data = ds.normed_embds[i]
+
+        r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+
+        beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], ds.means_vars[label].mean))
+        beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+
+        r_var.beta = beta_numerator / beta_denom
+
+        r_var.update_moments()
+        
+        # initialise phi variables
+
+    for k in range(ds.K):
+        # count number of labels in group k
+        num_labels = sum([1 for lab in ds.gmm.labels if lab == k])
+        ds.phi_var.conc[k] = num_labels + ds.phi_var.prior_conc[k]
+
 
     ds.dataset_vi(max_iter=3, run_init=False)
 
