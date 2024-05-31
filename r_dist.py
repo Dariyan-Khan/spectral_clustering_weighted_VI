@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.stats import norm
 from sigma_inv import sigma_inv_approx
+from scipy.special import logsumexp
 
 class R():
 
@@ -61,6 +62,31 @@ class R():
         # The current variable now holds the value of I_d
         return current
     
+    def compute_log_Id(self, order):
+        # Compute log I_0 and log I_1
+        log_I_0 = 0.5 * np.log(np.pi / self.alpha) + norm.logcdf(self.beta * np.sqrt(2 * self.alpha))
+        log_I_1 = np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
+
+        # If order is 0 or 1, return log I_0 or log I_1 directly
+        if order == 0:
+            return log_I_0
+        if order == 1:
+            return log_I_1
+
+        # Initialize previous two values for the recursion
+        log_previous = log_I_0
+        log_current = log_I_1
+
+        # Recursively compute log I_d using only the last two values
+        for i in range(2, order + 1):
+            log_term1 = np.log(self.beta) + log_current
+            log_term2 = log_previous + np.log((i - 1) / (2 * self.alpha))
+            log_next_value = logsumexp([log_term1, log_term2])
+            log_previous, log_current = log_current, log_next_value
+
+        # The log_current variable now holds the value of log I_d
+        return log_current
+    
     def update_moments(self):
         self.norm_const = self.compute_Id(order=self.d) # normalising constant for distribution
         self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
@@ -87,10 +113,10 @@ class R():
     #     self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
     #     self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, norm_datapoint):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint):
 
-        new_α = 0
-        new_β = 0
+        C = 0
+        D = 0
 
         norm_datapoint = norm_datapoint.reshape(-1, 1)
 
@@ -102,29 +128,38 @@ class R():
 
             sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
 
-            
+            C += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
+            D += phi_var.conc[k] * (np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint))
+        
 
             # self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
             # self.β = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
 
-            new_α +=  z_i.probs[data_group] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
-            new_β += z_i.probs[data_group] * (np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint))
+            # The z_i should be a \phi_i 
+
+            # new_α +=  z_i.probs[data_group] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
+            # new_β += z_i.probs[data_group] * (np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint))
 
             # self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
             # self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
 
-        
-        self.alpha = new_α
-        self.beta = new_β
-
+        self.alpha = C / 2
+        self.beta = D / C
+    
         self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+        if self.norm_const < 0.001:
+            print(f"==>> self.alpha: {self.alpha}")
+            print(f"==>> self.beta: {self.beta}")
+            print(f"==>> self.norm_const: {self.norm_const}")
+            assert False
+
         self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
         self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
 
 
 
 if __name__ == "__main__":
-    r_dist = R(α=1, β=7, d=3)
-    print(r_dist.first_moment)
-    print(r_dist.second_moment)
+    r_dist = R(alpha=1, beta=7, d=3)
+    print(r_dist.compute_Id(3))
+    print(np.exp(r_dist.compute_log_Id(3)))
 
