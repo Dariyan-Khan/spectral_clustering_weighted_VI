@@ -64,7 +64,7 @@ class Sigma_Star():
             
 
 
-    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, phi_var, datapoints):
 
         scale_mat = self.prior_scale
         dof = self.prior_dof
@@ -78,8 +78,8 @@ class Sigma_Star():
             # print(f"==>> self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data).shape: {self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data).shape}")
             # print(f"==>> scale_mat.shape: {scale_mat.shape}")
 
-            scale_mat += z.probs[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
-            dof += z.probs[self.k]
+            scale_mat += phi_var.conc[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
+            dof += phi_var.conc[self.k]
         
         self.scale = scale_mat
         self.dof = max(dof, self.d+3)  # added max here

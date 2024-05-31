@@ -1,18 +1,6 @@
 import numpy as np
 
 
-def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergence purposes
-
-    d = sigma_star.d
-
-    """
-    Each matrix will be of the form
-    | A B|
-    | B C|
-    """
-
-    ν = sigma_star.nu
-
 def sigma_expectation(sigma_star, γ, ν, verbose=False):
 
     first_moment = sigma_star.first_mom()

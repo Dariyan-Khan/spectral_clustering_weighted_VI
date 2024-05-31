@@ -50,7 +50,7 @@ class Dataset():
             # for k in range(self.K):
 
             #     self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
-            #     self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
+            # self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
             #     self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
 
             for i in range(self.N):
@@ -116,9 +116,6 @@ class Dataset():
 
 
 if __name__ == '__main__':
-
-    μ_0 = np.array([0.75,0.25])
-    μ_1 = np.array([0.25, 0.75])
 
     # μ_1 = μ_1 / np.linalg.norm(μ_1)
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
