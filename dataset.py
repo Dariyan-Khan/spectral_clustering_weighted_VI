@@ -96,7 +96,6 @@ class Dataset():
 
             #print(f"scale_mat {k} det:", np.linalg.det(scale_mat))
                 
-
             self.gamma_vars[k].prior_cov = gamma_cov
             self.gamma_vars[k].mean = gmm.gamma_estimates[k]
             self.gamma_vars[k].cov = gamma_cov
@@ -379,94 +378,136 @@ if __name__ == '__main__':
     μ_1 = np.array([0.75,0.25])
     μ_2 = np.array([0.25, 0.75])
 
-    μ_1 = μ_1 / np.linalg.norm(μ_1)
-    μ_2 = μ_2 / np.linalg.norm(μ_2)
+    # μ_1 = μ_1 / np.linalg.norm(μ_1)
+    # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
+    μ_1 = np.array([0.75,0.25])
     cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
+
+    μ_2 = np.array([0.25, 0.75])
     cov_2 = np.array([[0.1, 0.05], [0.05, 0.1]])
 
     gamma_prior_cov = np.array([0.1])
 
     ν = cov_1[1,1]
 
+
+    # Number of samples to generate
+    n_samples = 1000
+
+    # Generate samples alternately
+    samples = np.zeros((n_samples, 2))
+    for i in range(n_samples):
+        if i % 2 == 0:
+            samples[i] = np.random.multivariate_normal(μ_1, cov_1)
+        else:
+            samples[i] = np.random.multivariate_normal(μ_2, cov_2)
+
+    
+
+
+
     # α = 7
     # β = 2
     # prior = lambda : beta.rvs(α, β)
 
-    prior = lambda : 0.5
-
-    ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
-
-    # ds.dataset_vi(max_iter=3)   
-
-    ds.gaussian_mm_init()
-
-    assumed_dof = ds.sigma_star_vars[0].dof
-    print(f"==>> assumed_dof: {assumed_dof}")
-
-    print(f"==>> ds.gamma_vars[0].prior_cov: {ds.gamma_vars[0].prior_cov}")
-
-    print(f"==>> ds.sigma_star_vars[0].prior_scale: {ds.sigma_star_vars[0].prior_scale}")
-    print(f"==>> ds.sigma_star_vars[0].scale: {ds.sigma_star_vars[0].scale}")
-
-    for i in range(0,len(ds.z_vars)):
-        ds.z_vars[i].probs = [0.0, 1.0] if i % 2 == 0 else [1.0, 0.0]
+    
 
 
-    ds.means_vars[0].prior_cov = cov_1
-    ds.means_vars[0].mean = μ_1
-    ds.means_vars[0].cov = cov_1
 
-    ds.gamma_vars[0].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
-    ds.gamma_vars[0].mean = np.array([cov_1[0, 1]]) / np.sqrt(ν)
-    ds.gamma_vars[0].cov = np.array([gamma_prior_cov / ν])
-    ds.gamma_vars[0].nu = cov_1[-1,-1]
 
-    ds.sigma_star_vars[0].prior_scale = np.array([cov_1[0,0] * (assumed_dof - ds.d)])
-    ds.sigma_star_vars[0].scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
-    ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # prior = lambda : 0.5
+
+    # ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
+
+    # # ds.dataset_vi(max_iter=3)   
+
+    # ds.gaussian_mm_init()
+
+    # assumed_dof = ds.sigma_star_vars[0].dof
+    # print(f"==>> assumed_dof: {assumed_dof}")
+
+    # print(f"==>> ds.gamma_vars[0].prior_cov: {ds.gamma_vars[0].prior_cov}")
+
+    # print(f"==>> ds.sigma_star_vars[0].prior_scale: {ds.sigma_star_vars[0].prior_scale}")
+    # print(f"==>> ds.sigma_star_vars[0].scale: {ds.sigma_star_vars[0].scale}")
+
+    # for i in range(0,len(ds.z_vars)):
+    #     ds.z_vars[i].probs = [0.0, 1.0] if i % 2 == 0 else [1.0, 0.0]
+
+
+    # ds.means_vars[0].prior_cov = cov_1
+    # ds.means_vars[0].mean = μ_1
+    # ds.means_vars[0].cov = cov_1
+
+    # ds.gamma_vars[0].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
+    # ds.gamma_vars[0].mean = np.array([cov_1[0, 1]]) / np.sqrt(ν)
+    # ds.gamma_vars[0].cov = np.array([gamma_prior_cov / ν])
+    # ds.gamma_vars[0].nu = cov_1[-1,-1]
+
+    # ds.sigma_star_vars[0].prior_scale = np.array([cov_1[0,0] * (assumed_dof - ds.d)])
+    # ds.sigma_star_vars[0].scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
+    # ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
 
     
-    ds.means_vars[1].prior_cov = cov_2[1,1]
-    ds.means_vars[1].mean = μ_2
-    ds.means_vars[1].cov = cov_2
+    # ds.means_vars[1].prior_cov = cov_2[1,1]
+    # ds.means_vars[1].mean = μ_2
+    # ds.means_vars[1].cov = cov_2
 
-    ds.gamma_vars[1].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
-    ds.gamma_vars[1].mean = np.array([cov_2[0, 1]]) / np.sqrt(ν)
-    ds.gamma_vars[1].cov = np.array([gamma_prior_cov / ν])
-    ds.gamma_vars[1].nu = cov_2[-1,-1]
+    # ds.gamma_vars[1].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
+    # ds.gamma_vars[1].mean = np.array([cov_2[0, 1]]) / np.sqrt(ν)
+    # ds.gamma_vars[1].cov = np.array([gamma_prior_cov / ν])
+    # ds.gamma_vars[1].nu = cov_2[-1,-1]
 
-    ds.sigma_star_vars[1].prior_scale = np.array([cov_2[0,0] - ds.gamma_vars[0].mean ** 2])
-    ds.sigma_star_vars[1].scale = np.array([[cov_2[0,0] * (assumed_dof - ds.d)]])
-    ds.sigma_star_vars[1].nu = cov_2[-1,-1]
+    # ds.sigma_star_vars[1].prior_scale = np.array([cov_2[0,0] - ds.gamma_vars[0].mean ** 2])
+    # ds.sigma_star_vars[1].scale = np.array([[cov_2[0,0] * (assumed_dof - ds.d)]])
+    # ds.sigma_star_vars[1].nu = cov_2[-1,-1]
 
-    full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_1, cov_2]]
+    # full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_1, cov_2]]
 
-    for i, (r_var, label) in enumerate(zip(ds.r_vars, ds.gmm.labels)):
-        curr_data = ds.normed_embds[i]
+    # for i, (r_var, label) in enumerate(zip(ds.r_vars, ds.gmm.labels)):
+    #     curr_data = ds.normed_embds[i]
 
-        # r_var.alpha = np.random.uniform(3.0, 3.5)
-        # r_var.beta = np .random.uniform(0.2, 0.3)
-        # r_var.update_moments()
+    #     # r_var.alpha = np.random.uniform(3.0, 3.5)
+    #     # r_var.beta = np .random.uniform(0.2, 0.3)
+    #     # r_var.update_moments()
 
-        r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+    #     r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
 
-        beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], ds.means_vars[label].mean)) 
-        beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+    #     beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], ds.means_vars[label].mean)) 
+    #     beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
 
-        r_var.beta = beta_numerator / beta_denom
+    #     r_var.beta = beta_numerator / beta_denom
 
-        r_var.update_moments()
+    #     r_var.update_moments()
         
-        # initialise phi variables
+    #     # initialise phi variables
 
-    for k in range(ds.K):
-        # count number of labels in group k
-        num_labels = sum([1 for lab in ds.gmm.labels if lab == k])
-        ds.phi_var.conc[k] = num_labels + ds.phi_var.prior_conc[k]
+    # for k in range(ds.K):
+    #     # count number of labels in group k
+    #     num_labels = sum([1 for lab in ds.gmm.labels if lab == k])
+    #     ds.phi_var.conc[k] = num_labels + ds.phi_var.prior_conc[k]
 
 
-    ds.dataset_vi(max_iter=3, run_init=False)
+# ds.dataset_vi(max_iter=3, run_init=False)
 
 
 
