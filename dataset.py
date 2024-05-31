@@ -55,7 +55,7 @@ class Dataset():
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
                 #self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
-            self.phi_var.vi(self.z_vars)
+            # self.phi_var.vi(self.z_vars)
         
             self.print_progress(epoch)
             
@@ -178,6 +178,24 @@ if __name__ == '__main__':
     ds.sigma_star_vars[1].prior_dof = 5
     ds.sigma_star_vars[1].scale = np.array([[cov_1[0,0] * (assumed_dof - ds.d)]])
     ds.sigma_star_vars[1].nu = cov_1[-1,-1]
+
+    full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_0, cov_1]]
+
+    for i, r_var in enumerate(ds.r_vars):
+        curr_data = ds.normed_embds[i]
+        r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[i%2], curr_data))
+
+        beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[i%2], ds.means_vars[i%2].mean)) 
+        beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[i%2], curr_data))
+
+        r_var.beta = beta_numerator / beta_denom
+
+        r_var.update_moments()
+        
+        # initialise phi variables
+
+        ds.phi_var.conc[0] = n_samples // 2
+        ds.phi_var.conc[1] = n_samples // 2 
 
    
 
