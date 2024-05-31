@@ -125,8 +125,6 @@ class R():
             μ = μ_vi_list[data_group]
 
             sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
-            # cov = np.array([[0.1, 0.05], [0.05, 0.1]])
-            #sigma_inv = np.linalg.inv(cov)
 
             C += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
             D += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)

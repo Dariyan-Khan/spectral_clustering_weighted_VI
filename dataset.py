@@ -54,8 +54,8 @@ class Dataset():
             #     self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             # self.phi_var.vi(self.z_vars)
         
@@ -124,10 +124,10 @@ if __name__ == '__main__':
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
     μ_0 = np.array([0.75,0.25])
-    cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_0 = np.array([[0.01, 0.005], [0.005, 0.01]])
 
     μ_1 = np.array([0.25, 0.75])
-    cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_1 = np.array([[0.01, 0.005], [0.005, 0.01]])
 
     gamma_prior_cov = np.array([0.1])
 
@@ -212,6 +212,8 @@ if __name__ == '__main__':
 
 
         r_var.update_moments(norm_datapoint)
+
+
         
         # initialise phi variables
 
