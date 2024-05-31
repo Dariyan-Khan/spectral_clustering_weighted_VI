@@ -91,7 +91,7 @@ class R():
         self.norm_const = self.compute_Id(order=self.d) # normalising constant for distribution
         self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
         self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
-    
+     
     # def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, norm_datapoint):
 
     #     data_group = np.argmax(z_i.probs)
