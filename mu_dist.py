@@ -23,7 +23,7 @@ class Mu():
 
     
 
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints):
 
         n_k = 0
         B = 0
@@ -31,14 +31,14 @@ class Mu():
 
         for (i, data) in enumerate(datapoints.normed_embds):
 
-            z = z_vi_list[i]
+            # z = z_vi_list[i]
 
             # print("z_probs", z.probs)
 
-            n_k += z.probs[self.k]
+            n_k += phi_var.conc[self.k]
 
         
-            B += r_vi_list[i].first_moment * z.probs[self.k] * data.T
+            B += r_vi_list[i].first_moment * phi_var.conc[self.k] * data.T
 
         # print("curr sigma_star_k", sigma_star_k)
 

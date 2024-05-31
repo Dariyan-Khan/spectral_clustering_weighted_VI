@@ -24,7 +24,7 @@ class Gamma():
         
         self.nu = None
     
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints):
 
         mean_vec = np.zeros(self.dim)
         cov_mat = np.zeros((self.dim, self.dim))
@@ -53,7 +53,7 @@ class Gamma():
 
             data = data.reshape(-1, 1)
 
-            mean_vec += z.probs[self.k] * (
+            mean_vec += phi_var.conc[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
                 r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \
