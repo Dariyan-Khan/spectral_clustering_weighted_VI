@@ -18,6 +18,8 @@ from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta
 
+np.random.seed(42)
+
 class Dataset():
     
     def __init__(self, embds, emb_dim=2, N=1000, K=2):
@@ -99,6 +101,10 @@ class Dataset():
                     r_first_beta: {[x.beta for x in self.r_vars[:10]]}
                     r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
                     r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
+
+                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(10)]}
+
+                    MLE_r_values: {[x.MLE() for x in self.r_vars[:10]]}
 
                  _____________________________________________________________________
 
@@ -197,7 +203,7 @@ if __name__ == '__main__':
             sigma_inv = full_sigma_inv_estimates[data_group]
 
             C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += ds.phi_var.conc[k] * (np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint))
+            D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
 
 
         r_var.alpha = C / 2

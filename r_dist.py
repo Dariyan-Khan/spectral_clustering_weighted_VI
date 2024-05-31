@@ -2,6 +2,7 @@ import numpy as np
 from scipy.stats import norm
 from sigma_inv import sigma_inv_approx
 from scipy.special import logsumexp
+from scipy.optimize import minimize_scalar
 
 class R():
 
@@ -123,10 +124,12 @@ class R():
             γ = γ_vi_list[data_group]
             μ = μ_vi_list[data_group]
 
-            sigma_inv = sigma_inv_approx(sigma, γ, α=sigma.nu)
+            sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
+            # cov = np.array([[0.1, 0.05], [0.05, 0.1]])
+            #sigma_inv = np.linalg.inv(cov)
 
             C += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += phi_var.conc[k] * (np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint))
+            D += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
         
 
             # self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
@@ -161,9 +164,29 @@ class R():
         # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
 
+    def function_to_maximize(self, r):
+        return (r**(self.d)) * np.exp(-self.alpha * (r - self.beta)**2)
+
+    def MLE(self):
+        # We want to maximize function_to_maximize, so we minimize the negative of it
+        objective = lambda r: -self.function_to_maximize(r)
+        
+        # Use minimize_scalar to find the maximum
+        result = minimize_scalar(objective, bounds=(0, self.beta+20), method='bounded')
+        
+        if result.success:
+            max_r = result.x
+            max_value = -result.fun
+            return max_r, max_value
+        else:
+            raise ValueError("Optimization failed")
+
 
 if __name__ == "__main__":
-    r_dist = R(alpha=4.6, beta=-5.8, d=3)
-    print(r_dist.compute_Id(0))
-    print(np.exp(r_dist.compute_log_Id(0)))
+    r_dist = R(alpha=4.0, beta=5.8, d=3)
+    # print(r_dist.compute_Id(0))
+    # print(np.exp(r_dist.compute_log_Id(0)))
+    print(r_dist.MLE())
+
+
 
