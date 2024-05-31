@@ -218,7 +218,7 @@ class Dataset():
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
             
@@ -409,7 +409,8 @@ if __name__ == '__main__':
     print(f"==>> ds.sigma_star_vars[0].prior_scale: {ds.sigma_star_vars[0].prior_scale}")
     print(f"==>> ds.sigma_star_vars[0].scale: {ds.sigma_star_vars[0].scale}")
 
-
+    for i in range(0,len(ds.z_vars)):
+        ds.z_vars[i].probs = [0.0, 1.0] if i % 2 == 0 else [1.0, 0.0]
 
 
     ds.means_vars[0].prior_cov = cov_1
@@ -444,9 +445,13 @@ if __name__ == '__main__':
     for i, (r_var, label) in enumerate(zip(ds.r_vars, ds.gmm.labels)):
         curr_data = ds.normed_embds[i]
 
+        # r_var.alpha = np.random.uniform(3.0, 3.5)
+        # r_var.beta = np .random.uniform(0.2, 0.3)
+        # r_var.update_moments()
+
         r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
 
-        beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], ds.means_vars[label].mean))
+        beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], ds.means_vars[label].mean)) 
         beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
 
         r_var.beta = beta_numerator / beta_denom
