@@ -38,7 +38,7 @@ class Dataset():
 
 
 
-    def dataset_vi(self, max_iter=1000, run_init=False):
+    def dataset_vi(self, max_iter=10, run_init=False):
 
         self.print_progress(epoch=0)
         
@@ -52,8 +52,8 @@ class Dataset():
             #     self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-                #self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                #self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             # self.phi_var.vi(self.z_vars)
         
@@ -194,12 +194,12 @@ if __name__ == '__main__':
         
         # initialise phi variables
 
-        ds.phi_var.conc[0] = n_samples // 2
-        ds.phi_var.conc[1] = n_samples // 2 
+    ds.phi_var.conc[0] = n_samples // 2
+    ds.phi_var.conc[1] = n_samples // 2 
 
    
 
-    ds.dataset_vi(max_iter=3)
+    ds.dataset_vi(max_iter=5)
 
 
     # α = 7
@@ -207,23 +207,6 @@ if __name__ == '__main__':
     # prior = lambda : beta.rvs(α, β)
 
     
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
