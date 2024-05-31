@@ -205,7 +205,7 @@ if __name__ == '__main__':
     
 
 
-        r_var.update_moments()
+        r_var.update_moments(norm_datapoint)
         
         # initialise phi variables
 
