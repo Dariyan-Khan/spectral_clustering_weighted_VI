@@ -38,58 +38,12 @@ class Dataset():
 
 
 
-    def dataset_vi(self, max_iter=1000, run_init=True):
+    def dataset_vi(self, max_iter=1000, run_init=False):
 
-        if run_init:
-            self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
-
-        print(f"""Initial values:
-                  
-                    μ_0_mean: {self.means_vars[0].mean}
-                    μ_0_cov: {self.means_vars[0].cov}
-
-                    μ_1_mean: {self.means_vars[1].mean}
-                    μ_1_cov: {self.means_vars[1].cov}
-
-                 _____________________________________________________________________
-
-                    sigma_0_scale: {self.sigma_star_vars[0].scale}
-                    sigma_0_dof: {self.sigma_star_vars[0].dof}
-
-                    sigma_1_scale: {self.sigma_star_vars[1].scale}
-                    sigma_1_dof: {self.sigma_star_vars[1].dof}
-
-                _____________________________________________________________________
-
-                    gamma_0_mean: {self.gamma_vars[0].mean}
-                    gamma_0_cov: {self.gamma_vars[0].cov}
-
-                    gamma_1_mean: {self.gamma_vars[1].mean}
-                    gamma_1_cov: {self.gamma_vars[1].cov}
-
-
-                _____________________________________________________________________
-
-                    First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
-
-                _____________________________________________________________________
-
-                    r_first_alpha: {[x.alpha for x in self.r_vars[:10]]}
-                    r_first_beta: {[x.beta for x in self.r_vars[:10]]}
-                    r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
-                    r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
-
-                 _____________________________________________________________________
-
-                    phi_probs: {self.phi_var.conc}
-                  
-                  
-                  """)
+        self.print_progress(epoch=0)
         
-        # assert False, "Just initialising the variables for now."
 
-        # for epoch in tqdm(range(max_iter), desc="Performing VI"):
-        for epoch in range(max_iter):
+        for epoch in range(1, max_iter+1):
 
             # for k in range(self.K):
 
@@ -99,11 +53,17 @@ class Dataset():
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                #self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
+        
+            self.print_progress(epoch)
             
-            print(f"""Iteration {epoch} results:
+            
+    
+    def print_progress(self, epoch):
+
+        print(f"""Iteration {epoch} results:
                   
                     μ_0_mean: {self.means_vars[0].mean}
                     μ_0_cov: {self.means_vars[0].cov}
@@ -175,12 +135,15 @@ if __name__ == '__main__':
     samples = np.zeros((n_samples, 2))
     for i in range(n_samples):
         if i % 2 == 0:
-            samples[i] = np.random.multivariate_normal(μ_1, cov_0)
+            samples[i] = np.random.multivariate_normal(μ_0, cov_0)
         else:
             samples[i] = np.random.multivariate_normal(μ_1, cov_1)
 
     
     ds = Dataset(samples, emb_dim=2, N=1000, K=2)
+
+    for i in range(0,len(ds.z_vars)):
+        ds.z_vars[i].probs = [1.0, 0.0] if i % 2 == 0 else [0.0, 1.0]
 
     assumed_dof = 5 #= d+3
 
@@ -204,21 +167,21 @@ if __name__ == '__main__':
     ds.gamma_vars[1].nu = cov_1[-1,-1]
 
     ds.sigma_star_vars[0].prior_scale = np.array([cov_1[0,0] * (assumed_dof - ds.d)])
+    ds.sigma_star_vars[0].dof = 5
+    ds.sigma_star_vars[0].prior_dof = 5
     ds.sigma_star_vars[0].scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
     ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
 
 
     ds.sigma_star_vars[1].prior_scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
+    ds.sigma_star_vars[1].dof = 5
+    ds.sigma_star_vars[1].prior_dof = 5
     ds.sigma_star_vars[1].scale = np.array([[cov_1[0,0] * (assumed_dof - ds.d)]])
     ds.sigma_star_vars[1].nu = cov_1[-1,-1]
 
+   
 
-
-
-
-
-    
-
+    ds.dataset_vi(max_iter=3)
 
 
     # α = 7
