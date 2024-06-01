@@ -63,10 +63,12 @@ class Dataset():
 
         # initialise the z variables
 
-        gmm.predict_proba(data)
-
         for z_var, data in zip(self.z_vars, self.normed_embds):
-            z_var.probs = gmm.predict_proba(data)
+            data = data.reshape(1, -1)
+
+            predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
+            predicted_probs = predicted_probs[0]
+            z_var.probs = predicted_probs
         
         # initialise the mean gamma and sigma
 
@@ -133,8 +135,6 @@ class Dataset():
             num_labels = sum([1 for lab in gmm.labels if lab == k])
             self.phi_var.conc[k] = num_labels + self.phi_var.prior_conc[k]
         
-        
-
 
 
     
@@ -143,61 +143,10 @@ class Dataset():
 
         self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
 
-
-
-        print(f"""Initial values:
-                  
-                    μ_0_mean: {self.means_vars[0].mean}
-                    μ_0_cov: {self.means_vars[0].cov}
-
-                    μ_1_mean: {self.means_vars[1].mean}
-                    μ_1_cov: {self.means_vars[1].cov}
-
-                    μ_2_mean: {self.means_vars[2].mean}
-                    μ_2_cov: {self.means_vars[2].cov}
-
-                 _____________________________________________________________________
-
-                    sigma_0_scale: {self.sigma_star_vars[0].scale}
-                    sigma_0_dof: {self.sigma_star_vars[0].dof}
-
-                    sigma_1_scale: {self.sigma_star_vars[1].scale}
-                    sigma_1_dof: {self.sigma_star_vars[1].dof}
-
-                    sigma_2_scale: {self.sigma_star_vars[2].scale}
-                    sigma_2_dof: {self.sigma_star_vars[2].dof}
-
-                _____________________________________________________________________
-
-                    gamma_0_mean: {self.gamma_vars[0].mean}
-                    gamma_0_cov: {self.gamma_vars[0].cov}
-
-                    gamma_1_mean: {self.gamma_vars[1].mean}
-                    gamma_1_cov: {self.gamma_vars[1].cov}
-
-                    gamma_2_mean: {self.gamma_vars[2].mean}
-                    gamma_2_cov: {self.gamma_vars[2].cov}
-
-                _____________________________________________________________________
-
-                    First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
-
-                _____________________________________________________________________
-
-                    r_first_alpha: {[x.alpha for x in self.r_vars[:10]]}
-                    r_first_beta: {[x.beta for x in self.r_vars[:10]]}
-                    r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
-                    r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
-
-                 _____________________________________________________________________
-
-                    phi_probs: {self.phi_var.conc}
-                  
-                  
-                  """)
+        self.print_progress(0)
 
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
-        for epoch in range(max_iter):
+        for epoch in range(1,max_iter+1):
 
              # for k in range(self.K):
 
@@ -205,7 +154,7 @@ class Dataset():
 
                 self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
@@ -213,7 +162,12 @@ class Dataset():
             
             self.phi_var.vi(self.z_vars)
             
-            print(f"""Iteration {epoch} results:
+            
+            self.print_progress(epoch)
+    
+    def print_progress(self, epoch):
+
+        print(f"""Iteration {epoch} results:
                   
                     μ_0_mean: {self.means_vars[0].mean}
                     μ_0_cov: {self.means_vars[0].cov}
@@ -221,8 +175,6 @@ class Dataset():
                     μ_1_mean: {self.means_vars[1].mean}
                     μ_1_cov: {self.means_vars[1].cov}
 
-                    μ_2_mean: {self.means_vars[2].mean}
-                    μ_2_cov: {self.means_vars[2].cov}
 
                  _____________________________________________________________________
 
@@ -232,8 +184,6 @@ class Dataset():
                     sigma_1_scale: {self.sigma_star_vars[1].scale}
                     sigma_1_dof: {self.sigma_star_vars[1].dof}
 
-                    sigma_2_scale: {self.sigma_star_vars[2].scale}
-                    sigma_2_dof: {self.sigma_star_vars[2].dof}
 
                 _____________________________________________________________________
 
@@ -242,9 +192,6 @@ class Dataset():
 
                     gamma_1_mean: {self.gamma_vars[1].mean}
                     gamma_1_cov: {self.gamma_vars[1].cov}
-
-                    gamma_2_mean: {self.gamma_vars[2].mean}
-                    gamma_2_cov: {self.gamma_vars[2].cov}
 
                 _____________________________________________________________________
 
@@ -257,6 +204,10 @@ class Dataset():
                     r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
                     r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
 
+                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(10)]}
+
+                    MLE_r_values: {[x.MLE() for x in self.r_vars[:10]]}
+
                  _____________________________________________________________________
 
                     phi_probs: {self.phi_var.conc}
@@ -266,10 +217,9 @@ class Dataset():
 
 
 
-
 class Synthetic_data(Dataset):
 
-    def __init__(self, μ_1, μ_2, μ_3,  prior, N_t=1000):
+    def __init__(self, μ_1, μ_2, prior, N_t=1000):
         # prior has to be a function which takes no arguments and spits out a sample
 
         # assert len(μ_1) == 2, "μ_1 and μ_2 have to be a 2D vector"
@@ -277,21 +227,19 @@ class Synthetic_data(Dataset):
 
         self.μ_1 = μ_1
         self.μ_2 = μ_2
-        self.μ_3 = μ_3
         self.mean_len = len(μ_1)
         self.N_t=N_t
-        self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2, μ_3)
+        self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
          # number of data points
 
-        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=3)
+        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=2)
 
 
-    def find_delta_inv(self, μ_1, μ_2, μ_3, exp_rho):
+    def find_delta_inv(self, μ_1, μ_2, exp_rho):
         μ_1_outer = np.outer(μ_1, μ_1)
         μ_2_outer = np.outer(μ_2, μ_2)
-        μ_3_outer = np.outer(μ_3, μ_3)
 
-        Δ = exp_rho**2 * (1 / 3) * (μ_1_outer + μ_2_outer + μ_3_outer)
+        Δ = exp_rho**2 * (1 / 2) * (μ_1_outer + μ_2_outer)
 
         Δ_inv = np.linalg.inv(Δ) 
         return Δ_inv
@@ -299,28 +247,22 @@ class Synthetic_data(Dataset):
     def exp_X1_inner_func(self, x, ρ, μ):
         return (np.dot(x, ρ*μ) - (np.dot(x, ρ*μ)**2)) * np.outer(ρ*μ, ρ*μ)
 
-    def covariance_estimate(self, x, μ_1, μ_2, μ_3, prior, exp_rho, N_ρ=1000, N_t=1000):
+    def covariance_estimate(self, x, μ_1, μ_2, prior, exp_rho, N_ρ=1000, N_t=1000):
         ρ_samples_1 = np.array([prior() for _ in range(N_ρ)])
         ρ_samples_2 = np.array([prior() for _ in range(N_ρ)])
-        ρ_samples_3 = np.array([prior() for _ in range(N_ρ)])
-
         μ_1_integral_estimate = (1 / N_ρ) * sum(self.exp_X1_inner_func(x, ρ, μ_1) for ρ in ρ_samples_1)
         μ_2_integral_estimate = (1 / N_ρ) * sum(self.exp_X1_inner_func(x, ρ, μ_2) for ρ in ρ_samples_2)
-        μ_3_integral_estimate = (1 / N_ρ) * sum(self.exp_X1_inner_func(x, ρ, μ_3) for ρ in ρ_samples_3)
-
-        exp_X1_func_estimate = (1/3) * (μ_1_integral_estimate + μ_2_integral_estimate + μ_3_integral_estimate)
-        Δ_inv = self.find_delta_inv(μ_1, μ_2, μ_3, exp_rho)
+        exp_X1_func_estimate = 0.5 * (μ_1_integral_estimate + μ_2_integral_estimate)
+        Δ_inv = self.find_delta_inv(μ_1, μ_2, exp_rho)
         return (Δ_inv @ exp_X1_func_estimate @ Δ_inv) / N_t
 
     def check_symmetric(self, a, rtol=1e-05, atol=1e-08):
         return np.allclose(a, a.T, rtol=rtol, atol=atol)
 
-    def simulate_adj_mat(self, prior, μ_1, μ_2, μ_3):
-        μ_mat = np.stack((μ_1, μ_2, μ_3), axis=1)
-        bern_params = [(prior(), np.random.randint(0,3)) for _ in range(self.N_t)]
-
-        self.true_labels = [x[1] for x in bern_params]
-
+    def simulate_adj_mat(self, prior, μ_1, μ_2):
+        μ_mat = np.stack((μ_1, μ_2), axis=1)
+        # bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+        bern_params = [(prior(), i % 2) for i in range(self.N_t)]
         adj_mat = np.zeros((self.N_t, self.N_t))
 
         for i in range(self.N_t):
@@ -328,7 +270,7 @@ class Synthetic_data(Dataset):
             for j in range(i):
                 ρ_j, μ_j = bern_params[j][0], μ_mat[:, bern_params[j][1]]
 
-                adj_mat[i,j] = np.random.binomial(1, ρ_i * ρ_j * np.dot(μ_i, μ_j)) # equivalent to a bernoulli distribution
+                adj_mat[i,j] = np.random.binomial(1, ρ_i * ρ_j * np.dot(μ_i, μ_j))
 
                 adj_mat[j,i] = adj_mat[i,j]
             
@@ -339,7 +281,7 @@ class Synthetic_data(Dataset):
         return adj_mat, bern_params
     
     def spectral_emb(self):
-        μ_mat = np.stack((self.μ_1, self.μ_2, self.μ_3), axis=1)
+        μ_mat = np.stack((self.μ_1, self.μ_2), axis=1)
         eigvals, eigvecs = np.linalg.eig(self.adj_mat)
         sorted_indexes = np.argsort(np.abs(eigvals))[::-1]
         eigvals = eigvals[sorted_indexes]
@@ -354,9 +296,15 @@ class Synthetic_data(Dataset):
             ρ_i, μ_i = self.bern_params[i][0], μ_mat[:, self.bern_params[i][1]]
             true_means[i, :] =  ρ_i * μ_i
 
+        # print("true_means", true_means)
+
         best_orthog_mat = orthogonal_procrustes(spectral_embedding, true_means)
 
         spectral_embedding = spectral_embedding @ best_orthog_mat[0]
+
+        # print("spectral_embedding", spectral_embedding)
+
+        # print("min norm", min(spectral_embedding, key=np.linalg.norm))
 
         return spectral_embedding
 
@@ -411,13 +359,8 @@ if __name__ == '__main__':
     # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
     #print()
 
-    μ_1 = np.array([0.8,0.15,0.05])
-    μ_2 = np.array([0.4,0.45,0.15])
-    μ_3 = np.array([0.1,0.3,0.6])
-
-    μ_1 = μ_1 / np.linalg.norm(μ_1)
-    μ_2 = μ_2 / np.linalg.norm(μ_2)
-    μ_3 = μ_3 / np.linalg.norm(μ_3)
+    μ_1 = np.array([0.75, 0.25])
+    μ_2 = np.array([0.25, 0.75])
 
     α = 7
     β = 2

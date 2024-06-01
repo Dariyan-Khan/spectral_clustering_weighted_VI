@@ -100,15 +100,15 @@ class R():
         # The log_current variable now holds the value of log I_d
         return log_current
     
-    def update_moments(self, norm_embd):
-        try:
-            self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-            self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-            self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+    def update_moments(self, norm_embd=None):
+        # try:
+        self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+        self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+        self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
         
-        except Exception:
-            print(f"==>> norm_embd: {norm_embd}")
-            assert False
+        # except Exception:
+        #     print(f"==>> norm_embd: {norm_embd}")
+        #     assert False
      
     
     def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint):
