@@ -101,7 +101,17 @@ class Sigma_Star():
 
         c_1 = (self.dof - self.dim - 2) * c_2
 
-        return (c_1+c_2) * (self.scale @ self.scale) + c_2 * np.trace(self.scale) * self.scale
+        return (c_1+c_2) * (self.scale @ self.scale) + c_2 * np.trace(self.scale) @ self.scale
+
+
+if __name__ == "__main__":
+    s = Sigma_Star(0, 3)
+    s.scale = np.array([[1, 2], [2, 3]])
+    s.dof = 5
+
+    print(s.fi)
+
+
 
 
 

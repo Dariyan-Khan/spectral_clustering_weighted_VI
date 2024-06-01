@@ -11,10 +11,6 @@ def sigma_expectation(sigma_star, γ, ν, verbose=False):
     C = ν
     C = np.array([[C]])
 
-    # print(A, "A")
-    # print(B.shape, "B shape")
-    # print(C.shape, "C shape")
-
     block_mat = np.block([[A, B], [B.T, C]])
 
     if verbose:
