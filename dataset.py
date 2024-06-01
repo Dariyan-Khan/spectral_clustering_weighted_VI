@@ -67,11 +67,6 @@ class Dataset():
 
         for z_var, data in zip(self.z_vars, self.normed_embds):
             z_var.probs = gmm.predict_proba(data)
-
-            # z_var.probs = np.zeros(self.K) + 0.4 + np.random.uniform(-0.1, 0.1, self.K)
-            # z_var.probs[label] = 1.0
-            # z_var.probs = z_var.probs / sum(z_var.probs)
-        
         
         # initialise the mean gamma and sigma
 
@@ -100,9 +95,6 @@ class Dataset():
 
             self.gamma_vars[k].nu = gmm.cluster_covs[k][-1,-1]
 
-            # print(f"gamma_cov {k} det:", np.linalg.det(gamma_cov))
-            # print("gamma cov:", gamma_cov)
-
 
         # initialise the r variables
 
@@ -110,14 +102,46 @@ class Dataset():
 
         print("sigma inv estimates:", full_sigma_inv_estimates)
 
+
+        for i, r_var in enumerate(ds.r_vars):
+            C=0
+            D=0
+            norm_datapoint = ds.normed_embds[i]
+            norm_datapoint = norm_datapoint.reshape(-1, 1)
+
+            for k in range (0, len(ds.z_vars[i].probs)):
+                data_group = k
+                μ = ds.means_vars[data_group]
+
+                sigma_inv = full_sigma_inv_estimates[data_group]
+
+                C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+                D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+
+
+            r_var.alpha = C / 2
+            r_var.beta = D / C
+
+
+
         for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
-            curr_data = self.normed_embds[i]
-            r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+            norm_datapoint = self.normed_embds[i]
+            norm_datapoint = norm_datapoint.reshape(-1, 1)
 
-            beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], self.means_vars[label].mean))
-            beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
+            for k in range (0, len(self.z_vars[i].probs)):
+                data_group = k
+                sigma = ds.sigma_star_vars[data_group]
+                γ = ds.gamma_vars[data_group]
+                μ = ds.means_vars[data_group]
 
-            r_var.beta = beta_numerator / beta_denom
+                sigma_inv = full_sigma_inv_estimates[data_group]
+
+            C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+
+
+        r_var.alpha = C / 2
+        r_var.beta = D / C
 
             r_var.update_moments()
         
@@ -130,29 +154,6 @@ class Dataset():
 
 
 
-    
-    def k_means_init(self, clusters_to_check=list(range(2, 11))):
-        # Initialize K centroids by randomly selecting K points from the dataset
-
-        best_silh_score = -10
-        best_num_clusters = 1
-        best_k_means = None
-
-        for n in tqdm(clusters_to_check, desc="Performing KMeans"):
-
-            kmeans = KMeans(n_clusters=n, random_state=42)  # random_state for reproducibility
-
-            kmeans_fitted = kmeans.fit(self.embds)
-
-            curr_silh_score = silhouette_score(self.embds, kmeans_fitted.predict(self.embds))
-
-            if curr_silh_score > best_silh_score:
-                best_silh_score = curr_silh_score
-                best_num_clusters = n
-                best_k_means = kmeans_fitted
-        
-        
-        return best_k_means, best_num_clusters
     
     def dataset_vi(self, max_iter=1000):
 
@@ -216,33 +217,16 @@ class Dataset():
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
         for epoch in range(max_iter):
 
-            # print("μ_0_mean", self.means_vars[0].mean)
-            # print("μ_0_cov", self.means_vars[0].cov)
-            # print("_________________________")
-            # print("μ_1_mean", self.means_vars[1].mean)
-            # print("μ_1_cov", self.means_vars[1].cov)
-            # print("_________________________")
-            # print("μ_2_mean", self.means_vars[2].mean)
-            # print("μ_2_cov", self.means_vars[2].cov)
-            # print("_________________________")
-
-            # set the normed embeddings to be the transpose
-            # self.normed_embds = self.normed_embds.T
-
-            # for i in range(self.N):
-            #     self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
-            #     self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var)
-            
-            # self.phi_var.vi(self.z_vars)
+             # for k in range(self.K):
 
             for k in range(self.K):
 
-                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self)
-                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self)
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.normed_embds[i]) 
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
