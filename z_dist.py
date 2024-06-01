@@ -50,10 +50,10 @@ class Z():
 
             # P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
 
-            Sigma_inv = sigma_inv_approx(sigma_star, γ, α=sigma_star.nu)
+            # Sigma_inv = sigma_inv_approx(sigma_star, γ, α=sigma_star.nu)
 
-            #cov = np.array([[0.01, 0.005], [0.005, 0.01]])
-            #Sigma_inv = np.linalg.inv(cov)
+            cov = np.array([[0.01, 0.005], [0.005, 0.01]])
+            Sigma_inv = np.linalg.inv(cov)
 
             norm_datapoint = norm_datapoint.reshape(-1, 1)
 

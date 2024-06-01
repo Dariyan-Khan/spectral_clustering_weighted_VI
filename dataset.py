@@ -54,10 +54,10 @@ class Dataset():
             #     self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var self)
 
             for i in range(self.N):
-                # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
-            # self.phi_var.vi(self.z_vars)
+            self.phi_var.vi(self.z_vars)
         
             self.print_progress(epoch)
             
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     ds = Dataset(samples, emb_dim=2, N=1000, K=2)
 
     for i in range(0,len(ds.z_vars)):
-        ds.z_vars[i].probs = [1.0, 0.0] if i % 2 == 0 else [0.0, 1.0]
+        ds.z_vars[i].probs = [0.5, 0.5] if i % 2 == 0 else [0.5, 0.5]
 
     assumed_dof = 5 #= d+3
 
