@@ -90,8 +90,8 @@ class R():
             # log_next_value = logsumexp([log_term1, log_term2])
             new_inner_log = self.beta * np.exp(log_current) + np.exp(log_term2) + eps
 
-            if new_inner_log<0:
-                return NotImplementedError
+            # if new_inner_log<0:
+            #     return NotImplementedError
 
             log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_term2) + eps)
 

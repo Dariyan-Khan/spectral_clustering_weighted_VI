@@ -5,11 +5,13 @@ class GMM_Init():
 
     def __init__(self, dataset, n_components=2):
         self.dataset = dataset
+
+        # gmm = GaussianMixture(n_components=n_components, reg_covar = 0.085, covariance_type='full')
         gmm = GaussianMixture(n_components=n_components, covariance_type='full')
         self.fitted_gmm = gmm.fit(dataset)
 
         self.cluster_centres = self.fitted_gmm.means_
-        self.cluster_covs = 10.0 * self.fitted_gmm.covariances_
+        self.cluster_covs = 100 *self.fitted_gmm.covariances_
 
         self.gamma_estimates = np.array([self.gamma_scaled(cov_mat) for cov_mat in self.cluster_covs])
 
@@ -30,11 +32,15 @@ class GMM_Init():
         γ = cov_mat[-1,:-1] / np.sqrt(ν)
         return γ
 
-    
     def gamma_prior_cov_estimate(self):
-        # print("self.gamma_estimates: ", self.gamma_estimates)
         gamma_cov_estimate = np.cov(self.gamma_estimates.T)
-        gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
+        
+        # Check if gamma_cov_estimate is a scalar or a 0-dimensional array
+        if np.ndim(gamma_cov_estimate) == 0 or gamma_cov_estimate.shape == ():
+            gamma_cov_estimate = np.array([[gamma_cov_estimate]])
+        else:
+            gamma_cov_estimate = np.diag(np.diag(gamma_cov_estimate))
+
         return gamma_cov_estimate
 
 

@@ -145,6 +145,13 @@ class Dataset():
 
         self.print_progress(0)
 
+        for i, (z_var, data) in enumerate(zip(self.z_vars, self.normed_embds)):
+            data = data.reshape(1, -1)
+
+            predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
+            predicted_probs = predicted_probs[0]
+            z_var.probs = np.array([1.0,0.0]) if i % 2 == 0 else np.array([0.0,1.0])  
+
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
         for epoch in range(1,max_iter+1):
 
@@ -158,7 +165,7 @@ class Dataset():
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
             
@@ -206,13 +213,9 @@ class Dataset():
 
                     true r_values: {[np.linalg.norm(self.embds[i]) for i in range(10)]}
 
-                    MLE_r_values: {[x.MLE() for x in self.r_vars[:10]]}
-
                  _____________________________________________________________________
 
                     phi_probs: {self.phi_var.conc}
-                  
-                  
                   """)
 
 
@@ -311,86 +314,37 @@ class Synthetic_data(Dataset):
 
 if __name__ == '__main__':
 
-#     adj_matrix = [
-#     [0, 1, 0, 1, 1, 0, 1, 0, 0, 1],
-#     [1, 0, 1, 0, 1, 1, 1, 0, 1, 0],
-#     [0, 1, 0, 1, 0, 1, 0, 1, 0, 1],
-#     [1, 0, 1, 0, 0, 0, 1, 1, 1, 1],
-#     [1, 1, 0, 0, 0, 0, 1, 1, 1, 1],
-#     [0, 1, 1, 0, 0, 0, 0, 1, 1, 1],
-#     [1, 1, 0, 1, 1, 0, 0, 1, 1, 0],
-#     [0, 0, 1, 1, 1, 1, 1, 0, 1, 0],
-#     [0, 1, 0, 1, 1, 1, 1, 1, 0, 1],
-#     [1, 0, 1, 1, 1, 1, 0, 0, 1, 0]
-# ]
-    
-
-#     ds = Dataset(
-#         adj_matrix,
-#         emb_dim=3,
-#         K=3
-#     )
-
-#     ds.dataset_vi(max_iter=10)
-
-#     print(ds.means_vars[0].mean, ds.means_vars[0].cov)
-#     print(ds.means_vars[1].mean, ds.means_vars[1].cov)
-#     print(ds.means_vars[2].mean, ds.means_vars[2].cov)
-
-#     print(ds.means_vars[1].mean, ds.means_vars[1].cov)
-
-    # μ_1 = np.array([0.75, 0.25, 0])
-    # μ_2 = np.array([0.25, 0.75, 0])
-
-    # # μ_1 = np.array([0.5,0.25,0.25])
-    # # μ_2 = np.array([0.4,0.15,0.45])
-
-    # # [0.8018,0.2673,0.5345] 
-    # # [0.2673,0.8018,0.5345]
-    # α = 2
-    # β = 2
-    # prior = lambda : beta.rvs(α, β)
-    # ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
-
-
-    # ds.dataset_vi(max_iter=12)
-
-    # print(ds.means_vars[0].mean, ds.means_vars[0].cov)
-    # print(ds.means_vars[1].mean, ds.means_vars[1].cov)
-    #print()
-
     μ_1 = np.array([0.75, 0.25])
     μ_2 = np.array([0.25, 0.75])
 
     α = 7
     β = 2
-    prior = lambda : beta.rvs(α, β)
+    prior = lambda : 0.5 #beta.rvs(α, β)
 
-    ds = Synthetic_data(μ_1, μ_2, μ_3, prior, N_t=1000)
+    ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
 
     # Set means to be the true value and see what happens
 
-    μ_list = [μ_1, μ_2, μ_3]
+    μ_list = [μ_1, μ_2]
 
     for k in range(ds.K):
         ds.means_vars[k].mean = μ_list[k]
 
-    
 
-    ds.dataset_vi(max_iter=3)
+    ds.dataset_vi(max_iter=5)
 
-    true_labels = ds.true_labels
-    max_probs = [np.argmax(z.probs) for z in ds.z_vars]
-    label_difference = np.sum(np.array(true_labels) != np.array(max_probs))
+    ##true_labels = ds.true_labels
+    # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
+    # label_difference = np.sum(np.array(true_labels) != np.array(max_probs))
 
-    print()
-    value_counts = np.bincount(max_probs)
-    print(value_counts)
-    print("Label Difference:", label_difference)
+    # print()
+    # value_counts = np.bincount(max_probs)
+    # print(value_counts)
+    # print("Label Difference:", label_difference)
 
-    print("True Labels:", true_labels[:10])
+    # print("True Labels:", true_labels[:10])
 
-    print("Max Probs:", max_probs[:100])
+    # print("Max Probs:", max_probs[:100])
 
 
 
