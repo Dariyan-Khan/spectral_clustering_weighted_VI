@@ -64,15 +64,16 @@ class Sigma_Star():
             
 
 
-    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, phi_var, datapoints):
 
         scale_mat = self.prior_scale
         dof = self.prior_dof
 
         for (i, data) in enumerate(datapoints.normed_embds):
             z = z_vi_list[i]
-            scale_mat += z.probs[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
-            dof += z.probs[self.k]
+
+            scale_mat += phi_var.conc[self.k] * self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
+            dof += phi_var.conc[self.k]
         
         self.scale = scale_mat
         self.dof = max(dof, self.d+3)  # added max here
@@ -87,8 +88,6 @@ class Sigma_Star():
     def second_mom(self):
         assert self.dof > self.dim + 3, "Degrees of freedom must be greater than d + 2 for second moment formula"
 
-        #c_2 = 1 / ((self.dof - self.d +1) * (self.dof - self.d) * (self.dof - self.d - 2))
-
         c_2 = (self.dof - self.dim) * (self.dof - self.dim - 1) * (self.dof - self.dim - 3)
         c_2 = 1 / c_2
 
@@ -97,9 +96,7 @@ class Sigma_Star():
         return (c_1+c_2) * (self.scale @ self.scale) + c_2 * np.trace(self.scale) * self.scale
 
 
-
-
-
-
-
-
+if __name__ == "__main__":
+    s = Sigma_Star(0, 3)
+    s.scale = np.array([[1, 2], [2, 3]])
+    s.dof = 5
