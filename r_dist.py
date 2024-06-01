@@ -127,7 +127,19 @@ class R():
             sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
             C += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+
+            D_value = phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            D_value = D_value.reshape(-1)
+            D += D_value
+            
+            # except ValueError:
+            #     print(f"==>> D: {D}")
+            #     print(f"==>> phi_var.conc[k]: {phi_var.conc[k]}")
+            #     print(f"==>> norm_datapoint: {norm_datapoint}")
+            #     print(f"==>> sigma_inv: {sigma_inv}")
+            #     print(f"==>> μ.mean: {μ.mean}")
+            #     print(f"==>> phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean): {phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)}")
+            #     assert False
         
 
             # self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2

@@ -65,21 +65,16 @@ class Z():
             
             P_k = P_k_1 + P_k_2
 
-            # if verbose:
-            #     print(f"Class {k}: P_k={P_k} and digamma(phi.conc[k])={digamma(phi.conc[k])}")
-            #     print()
-
-
             log_probs[k] = P_k + digamma(phi.conc[k]) # np.log(phi.conc[k])
 
         
 
         new_probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
 
-        if verbose:
-            print(f"log_probs: {log_probs}")
-            print(f"new probabilities: {new_probs}")
-            print()
+        # if verbose:
+        #     print(f"log_probs: {log_probs}")
+        #     print(f"new probabilities: {new_probs}")
+        #     print()
 
         # print(f"==>> new_probs.shape: {new_probs.shape}")
         # print(f"==>> new_probs: {new_probs}")

@@ -49,13 +49,13 @@ class Dataset():
 
             # for k in range(self.K):
 
-            # self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
+            self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
             # self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
             #     self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var self)
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
         
@@ -221,88 +221,6 @@ if __name__ == '__main__':
    
 
     ds.dataset_vi(max_iter=5)
-
-
-    # α = 7
-    # β = 2
-    # prior = lambda : beta.rvs(α, β)
-
-    
-
-    # prior = lambda : 0.5
-
-    # ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
-
-    # # ds.dataset_vi(max_iter=3)   
-
-    # ds.gaussian_mm_init()
-
-    # assumed_dof = ds.sigma_star_vars[0].dof
-    # print(f"==>> assumed_dof: {assumed_dof}")
-
-    # print(f"==>> ds.gamma_vars[0].prior_cov: {ds.gamma_vars[0].prior_cov}")
-
-    # print(f"==>> ds.sigma_star_vars[0].prior_scale: {ds.sigma_star_vars[0].prior_scale}")
-    # print(f"==>> ds.sigma_star_vars[0].scale: {ds.sigma_star_vars[0].scale}")
-
-    # for i in range(0,len(ds.z_vars)):
-    #     ds.z_vars[i].probs = [0.0, 1.0] if i % 2 == 0 else [1.0, 0.0]
-
-
-    # ds.means_vars[0].prior_cov = cov_1
-    # ds.means_vars[0].mean = μ_1
-    # ds.means_vars[0].cov = cov_1
-
-    # ds.gamma_vars[0].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
-    # ds.gamma_vars[0].mean = np.array([cov_1[0, 1]]) / np.sqrt(ν)
-    # ds.gamma_vars[0].cov = np.array([gamma_prior_cov / ν])
-    # ds.gamma_vars[0].nu = cov_1[-1,-1]
-
-    # ds.sigma_star_vars[0].prior_scale = np.array([cov_1[0,0] * (assumed_dof - ds.d)])
-    # ds.sigma_star_vars[0].scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
-    # ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
-
-    
-    # ds.means_vars[1].prior_cov = cov_2[1,1]
-    # ds.means_vars[1].mean = μ_2
-    # ds.means_vars[1].cov = cov_2
-
-    # ds.gamma_vars[1].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
-    # ds.gamma_vars[1].mean = np.array([cov_2[0, 1]]) / np.sqrt(ν)
-    # ds.gamma_vars[1].cov = np.array([gamma_prior_cov / ν])
-    # ds.gamma_vars[1].nu = cov_2[-1,-1]
-
-    # ds.sigma_star_vars[1].prior_scale = np.array([cov_2[0,0] - ds.gamma_vars[0].mean ** 2])
-    # ds.sigma_star_vars[1].scale = np.array([[cov_2[0,0] * (assumed_dof - ds.d)]])
-    # ds.sigma_star_vars[1].nu = cov_2[-1,-1]
-
-    # full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_1, cov_2]]
-
-    # for i, (r_var, label) in enumerate(zip(ds.r_vars, ds.gmm.labels)):
-    #     curr_data = ds.normed_embds[i]
-
-    #     # r_var.alpha = np.random.uniform(3.0, 3.5)
-    #     # r_var.beta = np .random.uniform(0.2, 0.3)
-    #     # r_var.update_moments()
-
-    #     r_var.alpha = 0.5 * np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
-
-    #     beta_numerator = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], ds.means_vars[label].mean)) 
-    #     beta_denom = np.matmul(curr_data.T, np.matmul(full_sigma_inv_estimates[label], curr_data))
-
-    #     r_var.beta = beta_numerator / beta_denom
-
-    #     r_var.update_moments()
-        
-    #     # initialise phi variables
-
-    # for k in range(ds.K):
-    #     # count number of labels in group k
-    #     num_labels = sum([1 for lab in ds.gmm.labels if lab == k])
-    #     ds.phi_var.conc[k] = num_labels + ds.phi_var.prior_conc[k]
-
-
-# ds.dataset_vi(max_iter=3, run_init=False)
 
 
 
