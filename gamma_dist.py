@@ -24,7 +24,7 @@ class Gamma():
         
         self.nu = None
     
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints):
 
         mean_vec = np.zeros(self.dim)
         cov_mat = np.zeros((self.dim, self.dim))
@@ -33,9 +33,9 @@ class Gamma():
         mean_vec = np.expand_dims(mean_vec, axis=1)
 
         for (i, data) in enumerate(datapoints.normed_embds):
-            z = z_vi_list[i]
+            # z = z_vi_list[i]
 
-            cov_mat_inner += z.probs[self.k] * (
+            cov_mat_inner += phi_var.conc[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1]**2 - \
                 2 * r_vi_list[i].first_moment * data[self.d-1]*μ_k.mean[self.d-1] + \
                 μ_k.mean[self.d-1]**2 + \
@@ -53,7 +53,7 @@ class Gamma():
 
             data = data.reshape(-1, 1)
 
-            mean_vec += z.probs[self.k] * (
+            mean_vec += phi_var.conc[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
                 r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \
@@ -92,22 +92,6 @@ class Gamma():
 
 
     def three_gamma(self):
-        # col_vars = np.tile(np.diag(self.cov).reshape(1, self.dim), (self.dim, 1)) # if we change rows, should stay the same 
-        # A_mat  = self.cov / col_vars
-
-        # np.fill_diagonal(A_mat, 0)
-
-        # M_2_vec = np.diag(self.cov) + self.mean**2
-        # M_3_vec = self.mean**3 + 3 * self.mean * np.diag(self.cov)
-
-        # col_mu = np.tile(self.mean.reshape(1,self.dim), (self.dim,1))  # if we change rows, should stay the same 
-        # row_mu = col_mu.T  # if we change cols, should stay the same 
-
-        # B_mat = row_mu - col_mu*A_mat
-
-        # np.fill_diagonal(B_mat, 0)
-
-        # return M_3_vec  + (A_mat @ M_3_vec) + (B_mat @ M_2_vec)
 
         std_devs = np.sqrt(np.diag(self.cov))
         # print(std_devs, "std_devs")
@@ -136,39 +120,10 @@ class Gamma():
     def quadruple_gamma(self):
 
         std_devs = np.sqrt(np.diag(self.cov))
-        # print(std_devs, "std_devs")
 
         self.corr = self.cov / np.outer(std_devs, std_devs)
 
-        # self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
-
         quad_mat =  np.zeros((self.dim, self.dim))
-
-        # col_vars = np.tile(np.diag(self.cov).reshape(1, self.dim), (self.dim, 1)) # if we change rows, should stay the same 
-        # row_vars = col_vars.T # if we change cols, should stay the same 
-
-        # A_mat  = self.cov / col_vars
-        # np.fill_diagonal(A_mat, 0)
-
-        # A_sq_mat = A_mat**2
-
-        # col_mu = np.tile(self.mean.reshape(1,self.dim), (self.dim,1))
-        # row_mu = col_mu.T
-
-        # B_mat = 2 * A_mat * (row_mu - col_mu*A_mat)
-        # np.fill_diagonal(B_mat, 0)
-
-        # C_mat = (row_mu - A_mat * col_mu)**2 + row_vars * (1-self.corr**2)
-        # np.fill_diagonal(C_mat, 0)
-
-        # M_2_vec = np.diag(self.cov) + self.mean**2
-        # M_3_vec = self.mean**3 + 3 * self.mean * np.diag(self.cov)
-        # M_4_vec = self.mean**4 + 6 * self.mean**2 * np.diag(self.cov) + 3 * np.diag(self.cov)**2
-
-        # # diagonal terms
-
-        # np.fill_diagonal(quad_mat, M_4_vec + 4 * (A_sq_mat @ M_4_vec) + (B_mat @ M_3_vec) + (C_mat @ M_2_vec))
-
 
         # diagonal terms
 
@@ -254,36 +209,5 @@ class Gamma():
         
 
         return quad_mat
-
-
-                
-                    
-                    
-
-
-
-                   
-
-                
-
-
-
-
-
-
-
-
-
-
-       
-
-    
-
-
-        
-
-
-
-
 
 

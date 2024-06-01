@@ -103,28 +103,9 @@ class Dataset():
         print("sigma inv estimates:", full_sigma_inv_estimates)
 
 
-        for i, r_var in enumerate(ds.r_vars):
+        for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
             C=0
             D=0
-            norm_datapoint = ds.normed_embds[i]
-            norm_datapoint = norm_datapoint.reshape(-1, 1)
-
-            for k in range (0, len(ds.z_vars[i].probs)):
-                data_group = k
-                μ = ds.means_vars[data_group]
-
-                sigma_inv = full_sigma_inv_estimates[data_group]
-
-                C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-                D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
-
-
-            r_var.alpha = C / 2
-            r_var.beta = D / C
-
-
-
-        for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
             norm_datapoint = self.normed_embds[i]
             norm_datapoint = norm_datapoint.reshape(-1, 1)
 
@@ -140,8 +121,8 @@ class Dataset():
             D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
 
 
-        r_var.alpha = C / 2
-        r_var.beta = D / C
+            r_var.alpha = C / 2
+            r_var.beta = D / C
 
             r_var.update_moments()
         
@@ -151,6 +132,8 @@ class Dataset():
             # count number of labels in group k
             num_labels = sum([1 for lab in gmm.labels if lab == k])
             self.phi_var.conc[k] = num_labels + self.phi_var.prior_conc[k]
+        
+        
 
 
 
@@ -159,7 +142,6 @@ class Dataset():
 
 
         self.gaussian_mm_init() # initialize the means, sigma_star and gamma distributions
-
 
 
 
@@ -283,19 +265,6 @@ class Dataset():
                   """)
 
 
-    
-    def generate_best_k_means(self):
-
-        if self.K is None:
-            best_k_means, best_num_clusters = self.k_means_init(clusters_to_check=list(range(2, min(11, self.N))))
-            self.K = best_num_clusters
-        
-        else:
-            kmeans = KMeans(n_clusters=self.K, random_state=42)  # random_state for reproducibility
-            best_k_means = kmeans.fit(self.embds)
-        
-        self.best_k_means = best_k_means
-        
 
 
 class Synthetic_data(Dataset):

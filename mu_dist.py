@@ -23,7 +23,7 @@ class Mu():
 
     
 
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints):
 
         n_k = 0
         B = 0
@@ -31,46 +31,19 @@ class Mu():
 
         for (i, data) in enumerate(datapoints.normed_embds):
 
-            z = z_vi_list[i]
+            n_k += phi_var.conc[self.k]
+            B += r_vi_list[i].first_moment * phi_var.conc[self.k] * data.T
 
-            # print("z_probs", z.probs)
-
-            n_k += z.probs[self.k]
-
-        
-            B += r_vi_list[i].first_moment * z.probs[self.k] * data.T
-
-        # print("curr sigma_star_k", sigma_star_k)
 
         sigma_inv_estimate = sigma_inv_approx(sigma_star_k, γ_k, α=sigma_star_k.nu)
 
-        # print("z shape", z_vi_list[-1].probs.shape)
-        # print("B shape", B.shape)
-
-        # print("last z:", z_vi_list[-1].probs)
-
-        # print("B before:", B)
-        # print("sigma inv estimate", sigma_inv_estimate)
 
         B = np.matmul(B, sigma_inv_estimate)
                 
         A = sigma_inv_estimate*n_k + np.linalg.inv(self.prior_cov)
         A_inv = np.linalg.inv(A)
-
-        # print()
-
-        # print("B_matrix", B)
-
-        # print("A_inverse", A_inv)
     
         B = np.reshape(B, (-1, 1))
 
         self.mean = np.matmul(A_inv, B)
         self.cov = A_inv
-
-        # self.mean = self.mean / np.linalg.norm(self.mean)
-
-
-
-
-    
