@@ -185,9 +185,10 @@ if __name__ == '__main__':
     full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_0, cov_1]]
 
     
-    C=0
-    D=0
+    
     for i, r_var in enumerate(ds.r_vars):
+        C=0
+        D=0
         norm_datapoint = ds.normed_embds[i]
         norm_datapoint = norm_datapoint.reshape(-1, 1)
 
