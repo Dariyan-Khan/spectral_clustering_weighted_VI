@@ -40,7 +40,11 @@ class Mu():
 
         sigma_inv_estimate = np.linalg.inv(cov_0)
 
-        B = np.matmul(sigma_inv_estimate, B)
+        # print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
+
+        # print(f"==>> B.shape: {B.shape}")
+
+        B = np.matmul(sigma_inv_estimate, B.T)
                 
         A = sigma_inv_estimate*n_k + np.linalg.inv(self.prior_cov)
 
