@@ -49,15 +49,16 @@ class Dataset():
 
             for k in range(self.K):
                 # pass
-                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
-                #self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
+                # self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
                 # self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                pass
+                # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
+                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
-            self.phi_var.vi(self.z_vars)
+            # self.phi_var.vi(self.z_vars)
         
             self.print_progress(epoch, num_els=10)
             
@@ -77,10 +78,17 @@ class Dataset():
                  _____________________________________________________________________
 
                     sigma_0_scale: {self.sigma_star_vars[0].scale}
+                    sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
                     sigma_0_dof: {self.sigma_star_vars[0].dof}
+                    sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
+                    sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
 
                     sigma_1_scale: {self.sigma_star_vars[1].scale}
+                    sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
                     sigma_1_dof: {self.sigma_star_vars[1].dof}
+                    sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
+                    sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
+
 
 
                 _____________________________________________________________________
@@ -121,10 +129,10 @@ if __name__ == '__main__':
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
     μ_0 = np.array([0.75,0.25])
-    cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_0 = np.array([[1, 0.5], [0.5, 1]])
 
     μ_1 = np.array([0.25, 0.75])
-    cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_1 = np.array([[1, 0.5], [0.5, 1]])
 
     gamma_prior_cov = np.array([0.1])
 
@@ -132,7 +140,7 @@ if __name__ == '__main__':
 
 
     # Number of samples to generate
-    n_samples = 1000
+    n_samples = 10
 
     # Generate samples alternately
     samples = np.zeros((n_samples, 2))
@@ -148,7 +156,7 @@ if __name__ == '__main__':
     ds = Dataset(samples, emb_dim=2, N=n_samples, K=2)
 
     for i in range(0,len(ds.z_vars)):
-        ds.z_vars[i].probs = [0.8, 0.2] if i % 2 == 0 else [0.2, 0.8]
+        ds.z_vars[i].probs = [1.0, 0.0] if i % 2 == 0 else [0.0, 1.0]
 
     assumed_dof = 5 #= d+3
 
@@ -171,18 +179,24 @@ if __name__ == '__main__':
     ds.gamma_vars[1].cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[1].nu = cov_1[-1,-1]
 
-    ds.sigma_star_vars[0].prior_scale = np.array([cov_0[0,0] * (assumed_dof - ds.d)])
+    ds.sigma_star_vars[0].prior_scale = np.array([[2.25]]) #np.array([cov_0[0,0] - ds.gamma_vars[0].mean ** 2]) * (assumed_dof - ds.d)  # np.array([cov_0[0,0] * (assumed_dof - ds.d)])
     ds.sigma_star_vars[0].dof = 5
     ds.sigma_star_vars[0].prior_dof = 5
-    ds.sigma_star_vars[0].scale = np.array([cov_0[0,0] - ds.gamma_vars[0].mean ** 2])
-    ds.sigma_star_vars[0].nu = cov_1[-1,-1]                
+    ds.sigma_star_vars[0].scale = np.array([cov_0[0,0] - ds.gamma_vars[0].mean ** 2]) * (assumed_dof - ds.d)
+    ds.sigma_star_vars[0].nu = cov_1[-1,-1]           
+
+    ds.sigma_star_vars[0].first_moment = ds.sigma_star_vars[0].first_mom()
+    ds.sigma_star_vars[0].second_moment = ds.sigma_star_vars[0].second_mom()     
 
 
-    ds.sigma_star_vars[1].prior_scale = np.array([cov_1[0,0] - ds.gamma_vars[0].mean ** 2])
+    ds.sigma_star_vars[1].prior_scale = np.array([[2.25]]) # np.array([cov_1[0,0] - ds.gamma_vars[1].mean ** 2]) * (assumed_dof - ds.d)  #np.array([[cov_1[0,0] * (assumed_dof - ds.d)]])
     ds.sigma_star_vars[1].dof = 5
     ds.sigma_star_vars[1].prior_dof = 5
-    ds.sigma_star_vars[1].scale = np.array([[cov_1[0,0] * (assumed_dof - ds.d)]])
+    ds.sigma_star_vars[1].scale = np.array([cov_1[0,0] - ds.gamma_vars[1].mean ** 2]) * (assumed_dof - ds.d)
     ds.sigma_star_vars[1].nu = cov_1[-1,-1]
+
+    ds.sigma_star_vars[1].first_moment = ds.sigma_star_vars[1].first_mom()
+    ds.sigma_star_vars[1].second_moment = ds.sigma_star_vars[1].second_mom()
 
     full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in [cov_0, cov_1]]
 

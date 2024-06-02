@@ -1,4 +1,5 @@
 import numpy as np
+from copy import copy
 
 class Sigma_Star():
 
@@ -8,13 +9,13 @@ class Sigma_Star():
             self.prior_scale = np.eye(d-1)
         
         else:
-            self.prior_scale = prior_scale # (scale matrix, degrees of freedom)
+            self.prior_scale = np.copy(prior_scale) # (scale matrix, degrees of freedom)
         
         if prior_dof is None:
             self.prior_dof = d + 3
         
         else:
-            self.prior_dof = prior_dof
+            self.prior_dof = np.copy(prior_dof)
 
         self.k = k
         self.d = d
@@ -66,22 +67,21 @@ class Sigma_Star():
 
     def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, phi_var, datapoints):
 
-        scale_mat = self.prior_scale
-        dof = self.prior_dof
+        scale_mat = copy(self.prior_scale)
+        dof = copy(self.prior_dof)        
 
         for (i, data) in enumerate(datapoints.normed_embds):
             z = z_vi_list[i]
 
-            # print(f"==>> z.probs[self.k].shape: {z.probs[self.k].shape}")
-            # print(f"==>> z.probs: {z.probs}")
-            # print(f"==>> z.probs[self.k]: {z.probs[self.k]}")
-            # print(f"==>> self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data).shape: {self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data).shape}")
-            # print(f"==>> scale_mat.shape: {scale_mat.shape}")
             X_i_mat = self.X_i_matrix(r_vi_list[i], μ_k, γ_k, data)
-            X_i_mat = X_i_mat.reshape(-1)
-            scale_mat += phi_var.conc[self.k] * X_i_mat
-            dof += phi_var.conc[self.k]
+
+            if X_i_mat.size == 1:
+                X_i_mat = X_i_mat.reshape(-1)
+
+            scale_mat += z.probs[self.k] * X_i_mat
+            dof += z.probs[self.k] 
         
+
         self.scale = scale_mat
         self.dof = max(dof, self.d+3)  # added max here
 
@@ -102,7 +102,10 @@ class Sigma_Star():
 
         c_1 = (self.dof - self.dim - 2) * c_2
 
-        return (c_1+c_2) * (self.scale @ self.scale) + c_2 * np.trace([self.scale]) * self.scale
+        if self.scale.size == 1:
+            scale_mat = self.scale.reshape(1, 1)
+
+        return (c_1+c_2) * (scale_mat @ scale_mat) + c_2 * np.trace(scale_mat) * scale_mat
 
 
 if __name__ == "__main__":
