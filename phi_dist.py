@@ -20,9 +20,9 @@ class Phi():
         for z_i in z_vi_list:
             for k in range(self.K):
                 exp_els_in_cluster[k] += z_i.probs[k]
-        
-        self.conc = exp_els_in_cluster
-        
+            
+            self.conc = exp_els_in_cluster
+            
 
 
 

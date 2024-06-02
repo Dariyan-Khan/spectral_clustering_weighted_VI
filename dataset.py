@@ -42,28 +42,28 @@ class Dataset():
 
     def dataset_vi(self, max_iter=10, run_init=False):
 
-        self.print_progress(epoch=0)
+        self.print_progress(epoch=0, num_els=2)
         
 
         for epoch in range(1, max_iter+1):
 
-            # for k in range(self.K):
+            for k in range(self.K):
 
-            self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
             # self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
             #     self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var self)
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                #self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
         
-            self.print_progress(epoch)
+            self.print_progress(epoch, num_els=2)
             
             
     
-    def print_progress(self, epoch):
+    def print_progress(self, epoch , num_els=10):
 
         print(f"""Iteration {epoch} results:
                   
@@ -93,18 +93,18 @@ class Dataset():
 
                 _____________________________________________________________________
 
-                    First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
+                    First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
 
                 _____________________________________________________________________
                     
-                    r_first_alpha: {[x.alpha for x in self.r_vars[:10]]}
-                    r_first_beta: {[x.beta for x in self.r_vars[:10]]}
-                    r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
-                    r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
+                    r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
+                    r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
+                    r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
+                    r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
 
-                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(10)]}
+                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
 
-                    MLE_r_values: {[x.MLE() for x in self.r_vars[:10]]}
+                    MLE_r_values: {[x.MLE() for x in self.r_vars[:num_els]]}
 
                  _____________________________________________________________________
 
@@ -121,10 +121,10 @@ if __name__ == '__main__':
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
     μ_0 = np.array([0.75,0.25])
-    cov_0 = np.array([[0.01, 0.005], [0.005, 0.01]])
+    cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
 
     μ_1 = np.array([0.25, 0.75])
-    cov_1 = np.array([[0.01, 0.005], [0.005, 0.01]])
+    cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
 
     gamma_prior_cov = np.array([0.1])
 
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 
 
     # Number of samples to generate
-    n_samples = 1000
+    n_samples = 2
 
     # Generate samples alternately
     samples = np.zeros((n_samples, 2))
@@ -142,11 +142,13 @@ if __name__ == '__main__':
         else:
             samples[i] = np.random.multivariate_normal(μ_1, cov_1)
 
+    print(f"==>> samples: {samples}")
+
     
-    ds = Dataset(samples, emb_dim=2, N=1000, K=2)
+    ds = Dataset(samples, emb_dim=2, N=n_samples, K=2)
 
     for i in range(0,len(ds.z_vars)):
-        ds.z_vars[i].probs = [0.5, 0.5] if i % 2 == 0 else [0.5, 0.5]
+        ds.z_vars[i].probs = [1.0, 0.0] if i % 2 == 0 else [0.0, 1.0]
 
     assumed_dof = 5 #= d+3
 
@@ -186,7 +188,7 @@ if __name__ == '__main__':
 
     
     
-    for i, r_var in enumerate(ds.r_vars):
+    for i, (r_var, z_var) in enumerate(zip(ds.r_vars, ds.z_vars)):
         C=0
         D=0
         norm_datapoint = ds.normed_embds[i]
@@ -200,23 +202,25 @@ if __name__ == '__main__':
 
             sigma_inv = full_sigma_inv_estimates[data_group]
 
-            C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            C += z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            D += z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
 
 
         r_var.alpha = C / 2
         r_var.beta = D / C
-    
+
+
 
 
         r_var.update_moments(norm_datapoint)
 
+        r_var.first_moment = np.linalg.norm(ds.embds[i])
 
         
         # initialise phi variables
 
-    ds.phi_var.conc[0] = n_samples // 2
-    ds.phi_var.conc[1] = n_samples // 2 
+    # ds.phi_var.conc[0] = n_samples // 2
+    # ds.phi_var.conc[1] = n_samples // 2 
 
    
 

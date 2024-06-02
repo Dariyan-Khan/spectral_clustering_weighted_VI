@@ -117,18 +117,20 @@ class R():
         D = 0
 
         norm_datapoint = norm_datapoint.reshape(-1, 1)
-
         for k in range (0, len(z_i.probs)):
             data_group = k
             sigma = sigma_star_vi_list[data_group]
             γ = γ_vi_list[data_group]
             μ = μ_vi_list[data_group]
 
-            sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
-            C += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
+            sigma_inv = np.linalg.inv(cov_0)
+            # sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
-            D_value = phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+
+            D_value = z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
             D_value = D_value.reshape(-1)
             D += D_value
             
@@ -142,36 +144,11 @@ class R():
             #     assert False
         
 
-            # self.α = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
-            # self.β = np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-
-            # The z_i should be a \phi_i 
-
-            # new_α +=  z_i.probs[data_group] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint) / 2
-            # new_β += z_i.probs[data_group] * (np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean) / np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint))
-
-            # self.α = norm_datapoint.T @ sigma_inv @ norm_datapoint / 2
-            # self.β = (norm_datapoint.T @ sigma_inv @ μ.mean) / (norm_datapoint.T @ sigma_inv @ norm_datapoint)
-
+        
         self.alpha = C/2
         self.beta = D / C
 
         self.update_moments(norm_datapoint)
-    
-        # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-        # #normalising constant for distribution
-        # # if self.log_norm_const < np.log(0.001):
-        # #     print(f"==>> self.alpha: {self.alpha}")
-        # #     print(f"==>> self.beta: {self.beta}")
-        # #     print(f"==>> self.norm_const: {self.log_norm_const}")
-        # #     self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-        # #     print(f"==>> self.first_moment: {self.first_moment}")
-        # #     self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
-        # #     print(f"==>> self.second_moment: {self.second_moment}")
-        # #     assert False
-
-        # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-        # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
 
     def function_to_maximize(self, r):
