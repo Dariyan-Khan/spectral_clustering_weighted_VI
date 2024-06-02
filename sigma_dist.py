@@ -9,13 +9,13 @@ class Sigma_Star():
             self.prior_scale = np.eye(d-1)
         
         else:
-            self.prior_scale = np.copy(prior_scale) # (scale matrix, degrees of freedom)
+            self.prior_scale = copy(prior_scale) # (scale matrix, degrees of freedom)
         
         if prior_dof is None:
             self.prior_dof = d + 3
         
         else:
-            self.prior_dof = np.copy(prior_dof)
+            self.prior_dof = copy(prior_dof)
 
         self.k = k
         self.d = d
@@ -88,7 +88,9 @@ class Sigma_Star():
         self.first_moment = self.first_mom()
         self.second_moment = self.second_mom()
 
-    
+    def mode(self):
+        return self.scale / (self.dof + self.dim + 1)
+
     def first_mom(self):
         return self.scale / (self.dof - self.dim - 1)
     
@@ -114,7 +116,6 @@ if __name__ == "__main__":
     s.dof = 5
 
     print(s.fi)
-
 
 
 

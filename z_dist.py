@@ -17,7 +17,7 @@ class Z():
         self.d = d
 
     
-    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False):
+    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False, real_cov=None):
 
         log_probs = np.array([1/self.K for _ in range(self.K)])
 
@@ -52,7 +52,9 @@ class Z():
 
             # Sigma_inv = sigma_inv_approx(sigma_star, γ, α=sigma_star.nu)
 
-            cov = np.array([[0.01, 0.005], [0.005, 0.01]])
+            #cov = np.array([[0.01, 0.005], [0.005, 0.01]])
+            cov = real_cov
+
             Sigma_inv = np.linalg.inv(cov)
 
             norm_datapoint = norm_datapoint.reshape(-1, 1)

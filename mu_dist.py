@@ -23,7 +23,7 @@ class Mu():
 
     
 
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints, real_cov=None):
 
         n_k = 0
         B = 0
@@ -36,7 +36,7 @@ class Mu():
             B += r_vi_list[i].first_moment * z.probs[self.k] * data
 
 
-        cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
+        cov_0 = real_cov
 
         sigma_inv_estimate = np.linalg.inv(cov_0)
 
