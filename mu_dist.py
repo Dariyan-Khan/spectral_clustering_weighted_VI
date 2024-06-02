@@ -31,7 +31,7 @@ class Mu():
 
         for (i, data) in enumerate(datapoints.normed_embds):
 
-            print(f"==>> data: {data}")
+            ## print(f"==>> data: {data}")
 
             z = z_vi_list[i]
 
@@ -49,7 +49,7 @@ class Mu():
 
         #print()
 
-        print(n_k, "n_k")
+        # print(n_k, "n_k")
 
         cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
 

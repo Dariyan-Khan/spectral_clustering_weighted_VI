@@ -62,14 +62,17 @@ class Gamma():
 
         # mean_vec = np.expand_dims(mean_vec, axis=1)
 
-        cov_mat = self.nu * sigma_star_k.dof * np.matmul(np.linalg.inv(sigma_star_k.scale), cov_mat_inner)
+        if sigma_star_k.scale.size == 1:
+            scale_mat = np.array([sigma_star_k.scale])
+
+        cov_mat = self.nu * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), cov_mat_inner)
         cov_mat += np.linalg.inv(self.prior_cov)
 
         # print(np.linalg.det(cov_mat), "cov mat det")
 
         self.cov = np.linalg.inv(cov_mat)
 
-        mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(sigma_star_k.scale), mean_vec)
+        mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
 
         self.mean = np.matmul(self.cov, mean_vec)
         # self.mean = self.mean.reshape(-1,1)
@@ -78,7 +81,16 @@ class Gamma():
 
         # print("gamma cov", self.cov)
 
+        # if self.cov.size == 1:
+        #     std_cov = np.array([self.cov])
+
+       # print(f"std_cov", std_cov)
+
+        # print(f"==>> self.cov: {self.cov}")
+        self.cov = np.reshape(self.cov, (1, 1))
+
         std_devs = np.sqrt(np.diag(self.cov))
+        
 
         self.corr = self.cov / np.outer(std_devs, std_devs)
 
