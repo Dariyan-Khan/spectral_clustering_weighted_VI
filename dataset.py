@@ -51,10 +51,10 @@ class Dataset():
                 # pass
                 # self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
                 # self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
 
             for i in range(self.N):
-                # pass
+                pass
                 #self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
                 #self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
             
@@ -66,6 +66,11 @@ class Dataset():
     
     def print_progress(self, epoch , num_els=10, real_cov=None):
         real_sigma_star = real_cov[0,0] - real_cov[0,1] ** 2
+
+        ν = real_cov[-1,-1]
+        real_gamma = np.array([cov_1[0, 1]]) / np.sqrt(ν)
+
+
 
         num_elements = len(self.z_vars)
         num_correct = 0
@@ -110,9 +115,11 @@ class Dataset():
 
                     gamma_0_mean: {self.gamma_vars[0].mean}
                     gamma_0_cov: {self.gamma_vars[0].cov}
+                    real_gamma_0: {real_gamma}
 
                     gamma_1_mean: {self.gamma_vars[1].mean}
                     gamma_1_cov: {self.gamma_vars[1].cov}
+                    real_gamma_1: {real_gamma}
 
                 _____________________________________________________________________
 
@@ -148,12 +155,12 @@ if __name__ == '__main__':
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
     μ_0 = np.array([0.75,0.25])
-    cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_0 = np.array([[1, 0.5], [0.5, 1]])
 
     μ_1 = np.array([0.25, 0.75])
-    cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
+    cov_1 = np.array([[1, 0.5], [0.5, 1]])
 
-    gamma_prior_cov = np.array([0.1])
+    gamma_prior_cov = np.array([0.5]) #0.01*np.array([0.1])
 
     ν = cov_0[1,1]
 
@@ -244,7 +251,7 @@ if __name__ == '__main__':
 
         r_var.update_moments(norm_datapoint)
 
-        ## r_var.first_moment = np.linalg.norm(ds.embds[i])
+        # r_var.first_moment = np.linalg.norm(ds.embds[i])
 
         
         # initialise phi variables

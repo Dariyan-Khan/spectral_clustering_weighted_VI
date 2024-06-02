@@ -1,4 +1,5 @@
 import numpy as np
+from copy import copy, deepcopy
 
 
 class Gamma():
@@ -24,13 +25,18 @@ class Gamma():
         
         self.nu = None
     
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints, real_cov):
+        cov_0 = real_cov
+        sigma_inv_estimate = np.linalg.inv(cov_0)
 
         mean_vec = np.zeros(self.dim)
         cov_mat = np.zeros((self.dim, self.dim))
         cov_mat_inner = np.zeros((self.dim, self.dim))
         
         mean_vec = np.expand_dims(mean_vec, axis=1)
+
+        μ_k_mean_last_term = np.array([μ_k.cov[self.d-1, i] + μ_k.mean[self.d-1]*μ_k.mean[i] for i in range(self.dim)])
+        # print(f"==>> μ_k_mean_last_term: {μ_k_mean_last_term}")
 
         for (i, data) in enumerate(datapoints.normed_embds):
             z = z_vi_list[i]
@@ -41,32 +47,34 @@ class Gamma():
                 μ_k.mean[self.d-1]**2 + \
                 μ_k.cov[self.d-1, self.d-1]
             )
-            
-
-            # I think need to change :self.d to:self.d - 1
-            # print(mean_vec.shape, "mean_vec shape")
-
-            # print("heeee")
-
-            # print("data shape:" , data.shape)
-            # print("μ_k.mean shape:", μ_k.mean[:self.d-1].shape)
 
             data = data.reshape(-1, 1)
 
-            mean_vec += phi_var.conc[self.k] * (
+
+            mean_vec += z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
                 r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \
-                μ_k.mean[:self.d-1] * μ_k.mean[self.d-1]
+                μ_k_mean_last_term
+                # μ_k.mean[:self.d-1] * μ_k.mean[self.d-1]
             )
+
+            # print(f"==>> mean_vec: {mean_vec}")
 
         # mean_vec = np.expand_dims(mean_vec, axis=1)
 
         if sigma_star_k.scale.size == 1:
-            scale_mat = np.array([sigma_star_k.scale])
+            scale_mat = copy(np.array([sigma_star_k.scale]))
+        else:
+            scale_mat = copy(sigma_star_k.scale)
 
         cov_mat = self.nu * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), cov_mat_inner)
+
+       # print(f"==>> cov_mat: {cov_mat}")
+
         cov_mat += np.linalg.inv(self.prior_cov)
+        #print(f"==>> cov_mat: {cov_mat}")
+
 
         # print(np.linalg.det(cov_mat), "cov mat det")
 
@@ -74,30 +82,24 @@ class Gamma():
 
         mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
 
+        print(f"==>> mean_vec: {mean_vec}")
+
         self.mean = np.matmul(self.cov, mean_vec)
         # self.mean = self.mean.reshape(-1,1)
 
         self.outer_product = self.outer_prod()
 
-        # print("gamma cov", self.cov)
-
-        # if self.cov.size == 1:
-        #     std_cov = np.array([self.cov])
-
-       # print(f"std_cov", std_cov)
-
-        # print(f"==>> self.cov: {self.cov}")
-        self.cov = np.reshape(self.cov, (1, 1))
-
-        std_devs = np.sqrt(np.diag(self.cov))
+        if self.cov.size == 1:
+            std_cov = np.reshape(self.cov, (1, 1))
         
+        else:
+            std_cov = deepcopy(self.cov)
 
+        std_devs = np.sqrt(np.diag(std_cov))
+        
         self.corr = self.cov / np.outer(std_devs, std_devs)
-
-        # self.triple_gamma = self.three_gama()
-
-        # self.quad_gamma = self.quadruple_gamma()
     
+
 
     def outer_prod(self):
         return self.cov + np.outer(self.mean, self.mean)
