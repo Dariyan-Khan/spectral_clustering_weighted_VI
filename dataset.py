@@ -18,7 +18,7 @@ from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta
 
-np.random.seed(42)
+np.random.seed(44)
 
 class Dataset():
     
@@ -49,25 +49,28 @@ class Dataset():
 
             for k in range(self.K):
                 # pass
-                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
+                # self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                # self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
 
             for i in range(self.N):
+                pass
                 # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
+                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
             
-            self.phi_var.vi(self.z_vars)
+            # self.phi_var.vi(self.z_vars)
         
             self.print_progress(epoch, num_els=10, real_cov=real_cov)
             
             
     
     def print_progress(self, epoch , num_els=10, real_cov=None):
-        real_sigma_star = real_cov[0,0] - real_cov[0,1] ** 2
+        
 
         ν = real_cov[-1,-1]
         real_gamma = np.array([cov_1[0, 1]]) / np.sqrt(ν)
+
+        real_sigma_star = real_cov[0,0] - real_gamma ** 2
 
 
 
@@ -159,13 +162,13 @@ if __name__ == '__main__':
     μ_1 = np.array([0.25, 0.75])
     cov_1 = np.array([[0.01, 0.005], [0.005, 0.01]])
 
-    gamma_prior_cov = np.array([0.01]) #0.01*np.array([0.1])
+    gamma_prior_cov = np.array([0.001]) #0.01*np.array([0.1])
 
     ν = cov_0[1,1]
 
 
     # Number of samples to generate
-    n_samples = 1000
+    n_samples = 10
 
     # Generate samples alternately
     samples = np.zeros((n_samples, 2))

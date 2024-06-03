@@ -28,6 +28,8 @@ class Sigma_Star():
     def X_i_matrix(self, r_i, μ_k, γ_k, norm_data): #norm data means that the data point is normalised
         X_i = np.zeros((self.dim, self.dim))
 
+        # print(f"==>> self.nu: {self.nu}")
+
         for l in range(0, self.dim):
             for m in range(0, self.dim):
                 first_term = r_i.second_moment * norm_data[l] * norm_data[m] - \
@@ -52,13 +54,17 @@ class Sigma_Star():
                     μ_k.cov[l, self.d-1]
                 )
     
-                fourth_term = (1 / self.nu) * (γ_k.mean[l] * γ_k.mean[m] + γ_k.cov[l, m]) * (
+                fourth_term = (1 / self.nu) * (γ_k.mean[l] * γ_k.mean[m] + γ_k.cov[l, m]) * ( # I think it depends heavily on the γ_k term because when I remove it
+                                                                                            # We seem to be fine 
                     r_i.second_moment * norm_data[self.d-1]**2 - \
                     2 * r_i.first_moment * norm_data[self.d-1] * μ_k.mean[self.d-1] + \
                     μ_k.mean[self.d-1]**2 + \
                     μ_k.cov[self.d-1, self.d-1]
                 )
-
+                print(f"==>> first_term: {first_term}")
+                print(f"==>> second_term: {second_term}")
+                print(f"==>> third_term: {third_term}")
+                print(f"==>> fourth_term: {fourth_term}")
                 X_i[l, m] = first_term - second_term - third_term + fourth_term
         
         return X_i
