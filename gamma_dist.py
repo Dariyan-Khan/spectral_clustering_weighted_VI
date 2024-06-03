@@ -55,7 +55,7 @@ class Gamma():
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
                 r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \
-                μ_k_mean_last_term
+                μ_k_mean_last_term.T
                 # μ_k.mean[:self.d-1] * μ_k.mean[self.d-1]
             )
 
@@ -80,7 +80,7 @@ class Gamma():
 
         self.cov = np.linalg.inv(cov_mat)
 
-        mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
+        mean_vec = self.nu**0.5 * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
 
         # print(f"==>> mean_vec: {mean_vec}")
 
