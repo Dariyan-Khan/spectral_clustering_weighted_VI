@@ -49,16 +49,15 @@ class Dataset():
 
             for k in range(self.K):
                 # pass
-                # self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
-                # self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
+                # self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
 
             for i in range(self.N):
-                pass
-                #self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                #self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
+                # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
             
-            #self.phi_var.vi(self.z_vars)
+            # self.phi_var.vi(self.z_vars)
         
             self.print_progress(epoch, num_els=10, real_cov=real_cov)
             
@@ -155,12 +154,12 @@ if __name__ == '__main__':
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
     μ_0 = np.array([0.75,0.25])
-    cov_0 = np.array([[1, 0.5], [0.5, 1]])
+    cov_0 = np.array([[0.01, 0.005], [0.005, 0.01]])
 
     μ_1 = np.array([0.25, 0.75])
-    cov_1 = np.array([[1, 0.5], [0.5, 1]])
+    cov_1 = np.array([[0.01, 0.005], [0.005, 0.01]])
 
-    gamma_prior_cov = np.array([0.5]) #0.01*np.array([0.1])
+    gamma_prior_cov = np.array([0.01]) #0.01*np.array([0.1])
 
     ν = cov_0[1,1]
 
@@ -195,12 +194,12 @@ if __name__ == '__main__':
     ds.means_vars[1].cov = cov_1
 
 
-    ds.gamma_vars[0].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
+    ds.gamma_vars[0].prior_cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[0].mean = np.array([cov_0[0, 1]]) / np.sqrt(ν)
     ds.gamma_vars[0].cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[0].nu = cov_0[-1,-1]
 
-    ds.gamma_vars[1].prior_cov = np.array([gamma_prior_cov / np.sqrt(ν)])
+    ds.gamma_vars[1].prior_cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[1].mean = np.array([cov_1[0, 1]]) / np.sqrt(ν)
     ds.gamma_vars[1].cov = np.array([gamma_prior_cov / ν])
     ds.gamma_vars[1].nu = cov_1[-1,-1]

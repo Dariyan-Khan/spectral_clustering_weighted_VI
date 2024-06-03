@@ -37,6 +37,7 @@ class Mu():
 
 
         cov_0 = real_cov
+        print(f"==>> cov_0: {cov_0}")
 
         sigma_inv_estimate = np.linalg.inv(cov_0)
 

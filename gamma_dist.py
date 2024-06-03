@@ -82,7 +82,7 @@ class Gamma():
 
         mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
 
-        print(f"==>> mean_vec: {mean_vec}")
+        # print(f"==>> mean_vec: {mean_vec}")
 
         self.mean = np.matmul(self.cov, mean_vec)
         # self.mean = self.mean.reshape(-1,1)

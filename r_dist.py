@@ -3,6 +3,7 @@ from scipy.stats import norm
 from sigma_inv import sigma_inv_approx
 from scipy.special import logsumexp
 from scipy.optimize import minimize_scalar
+from copy import deepcopy
 
 class R():
 
@@ -21,24 +22,16 @@ class R():
             self.beta = beta
 
         self.d = d
-        # self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
-        # self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
-        # self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
+        self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+        self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
+        self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
 
-        self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-        self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-        self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+        # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+        # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+        # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
-        # print(f"the d used in R: {self.d}")
-        # print(f"the alpha used in R: {self.α}")
-        # print(f"the beta used in R: {self.β}")
-        # print(f"the norm constant: {self.norm_const}")
-        # print(f"self.compute_Id(order=self.d+1): {self.compute_Id(order=self.d+1)}")
-        # print(f"self.compute_Id(order=self.d+2): {self.compute_Id(order=self.d+2)}")
-        # print(f"the first_moment used in R: {self.first_moment}")
-        # print(f"the second_moment used in R: {self.second_moment}")
+        self.pdf = lambda x: ((x**(self.d)) * np.exp(-self.alpha * (x - self.beta)**2)) /  self.norm_const
 
-        # assert False
     
     def compute_Id(self, order):
         # Compute I_0 and I_1 which are needed for starting the recursion
@@ -52,8 +45,8 @@ class R():
             return I_1
         
         # Initialize previous two values for the recursion
-        previous = I_0
-        current = I_1
+        previous = deepcopy(I_0)
+        current = deepcopy(I_1)
         
         # Recursively compute I_d using only the last two values
         for i in range(2, order + 1):
@@ -68,10 +61,10 @@ class R():
 
         # I_0 = np.sqrt(np.pi / self.alpha) * norm.cdf(self.beta * np.sqrt(2 * self.alpha))
         # I_1 = self.beta * I_0 + np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)
-        eps = 1e-6
+        eps = 1e-4
 
         log_I_0 = 0.5 * np.log(np.pi / self.alpha) + norm.logcdf(self.beta * np.sqrt(2 * self.alpha))
-        log_I_1 =  np.log(self.beta * np.exp(log_I_0) + np.exp(-self.alpha * self.beta**2) / (2 * self.alpha) + eps)  #np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
+        log_I_1 =  np.log(self.beta * np.exp(log_I_0) + (np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)) + eps)  #np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
 
         # If order is 0 or 1, return log I_0 or log I_1 directly
         if order == 0:
@@ -80,20 +73,22 @@ class R():
             return log_I_1
 
         # Initialize previous two values for the recursion
-        log_previous = log_I_0
-        log_current = log_I_1
+        log_previous = deepcopy(log_I_0)
+        log_current = deepcopy(log_I_1)
 
         # Recursively compute log I_d using only the last two values
         for i in range(2, order + 1):
             #log_term1 = np.log(self.beta * np.exp(log_current))
-            log_term2 = log_previous + np.log((i - 1) / (2 * self.alpha) + eps)
-            # log_next_value = logsumexp([log_term1, log_term2])
-            new_inner_log = self.beta * np.exp(log_current) + np.exp(log_term2) + eps
+            # log_term2 = log_previous + np.log((i - 1) / (2 * self.alpha) + eps)
+            # # log_next_value = logsumexp([log_term1, log_term2])
+            # new_inner_log = self.beta * np.exp(log_current) + np.exp(log_term2) + eps
 
-            if new_inner_log<0:
-                return NotImplementedError
+            # if new_inner_log<0:
+            #     return NotImplementedError
 
-            log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_term2) + eps)
+            #log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_term2) + eps)
+            print(f"inner log: {self.beta * np.exp(log_current) + np.exp(log_previous) * (i - 1) / (2 * self.alpha) + eps}")
+            log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_previous) * (i - 1) / (2 * self.alpha) + eps)
 
             log_previous, log_current = log_current, log_next_value
 
@@ -102,9 +97,9 @@ class R():
     
     def update_moments(self, norm_embd):
         try:
-            self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-            self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-            self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+            self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+            self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
+            self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
         
         except Exception:
             print(f"==>> norm_embd: {norm_embd}")
