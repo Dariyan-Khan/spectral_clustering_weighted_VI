@@ -54,11 +54,11 @@ class Dataset():
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
 
             for i in range(self.N):
-                pass
+                # pass
                 # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
             
-            # self.phi_var.vi(self.z_vars)
+            self.phi_var.vi(self.z_vars)
         
             self.print_progress(epoch, num_els=10, real_cov=real_cov)
             
@@ -262,7 +262,7 @@ if __name__ == '__main__':
     # ds.phi_var.conc[1] = n_samples // 2 
 
 
-    ds.dataset_vi(max_iter=5, real_cov=cov_0)
+    ds.dataset_vi(max_iter=10, real_cov=cov_0)
 
 
 
