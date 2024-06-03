@@ -70,7 +70,7 @@ class Dataset():
         ν = real_cov[-1,-1]
         real_gamma = np.array([cov_1[0, 1]]) / np.sqrt(ν)
 
-        real_sigma_star = real_cov[0,0] - real_gamma ** 2
+        real_sigma_star = real_cov[0,0] - real_gamma ** 2 
 
 
 
