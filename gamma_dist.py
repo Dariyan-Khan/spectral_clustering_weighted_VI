@@ -68,7 +68,7 @@ class Gamma():
         else:
             scale_mat = copy(sigma_star_k.scale)
 
-        cov_mat = self.nu * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), cov_mat_inner)
+        cov_mat = (1/self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), cov_mat_inner)
 
        # print(f"==>> cov_mat: {cov_mat}")
 
@@ -80,7 +80,7 @@ class Gamma():
 
         self.cov = np.linalg.inv(cov_mat)
 
-        mean_vec = np.sqrt(self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
+        mean_vec = (1/np.sqrt(self.nu)) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
 
         # print(f"==>> mean_vec: {mean_vec}")
 
