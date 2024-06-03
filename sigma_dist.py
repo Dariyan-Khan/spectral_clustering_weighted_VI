@@ -61,10 +61,10 @@ class Sigma_Star():
                     μ_k.mean[self.d-1]**2 + \
                     μ_k.cov[self.d-1, self.d-1]
                 )
-                print(f"==>> first_term: {first_term}")
-                print(f"==>> second_term: {second_term}")
-                print(f"==>> third_term: {third_term}")
-                print(f"==>> fourth_term: {fourth_term}")
+                # print(f"==>> first_term: {first_term}")
+                # print(f"==>> second_term: {second_term}")
+                # print(f"==>> third_term: {third_term}")
+                # print(f"==>> fourth_term: {fourth_term}")
                 X_i[l, m] = first_term - second_term - third_term + fourth_term
         
         return X_i

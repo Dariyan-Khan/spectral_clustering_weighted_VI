@@ -49,7 +49,7 @@ class Dataset():
 
             for k in range(self.K):
                 # pass
-                # self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
                 self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
 
@@ -168,7 +168,7 @@ if __name__ == '__main__':
 
 
     # Number of samples to generate
-    n_samples = 10
+    n_samples = 1000
 
     # Generate samples alternately
     samples = np.zeros((n_samples, 2))
