@@ -166,36 +166,10 @@ class Gamma():
 
         self.corr = self.cov / np.outer(std_devs, std_devs)
 
-        # self.corr = self.cov / np.sqrt(np.outer(np.diag(self.cov), np.diag(self.cov)))
 
         quad_mat =  np.zeros((self.dim, self.dim))
 
-        # col_vars = np.tile(np.diag(self.cov).reshape(1, self.dim), (self.dim, 1)) # if we change rows, should stay the same 
-        # row_vars = col_vars.T # if we change cols, should stay the same 
-
-        # A_mat  = self.cov / col_vars
-        # np.fill_diagonal(A_mat, 0)
-
-        # A_sq_mat = A_mat**2
-
-        # col_mu = np.tile(self.mean.reshape(1,self.dim), (self.dim,1))
-        # row_mu = col_mu.T
-
-        # B_mat = 2 * A_mat * (row_mu - col_mu*A_mat)
-        # np.fill_diagonal(B_mat, 0)
-
-        # C_mat = (row_mu - A_mat * col_mu)**2 + row_vars * (1-self.corr**2)
-        # np.fill_diagonal(C_mat, 0)
-
-        # M_2_vec = np.diag(self.cov) + self.mean**2
-        # M_3_vec = self.mean**3 + 3 * self.mean * np.diag(self.cov)
-        # M_4_vec = self.mean**4 + 6 * self.mean**2 * np.diag(self.cov) + 3 * np.diag(self.cov)**2
-
-        # # diagonal terms
-
-        # np.fill_diagonal(quad_mat, M_4_vec + 4 * (A_sq_mat @ M_4_vec) + (B_mat @ M_3_vec) + (C_mat @ M_2_vec))
-
-
+       
         # diagonal terms
 
         for i in range(self.dim):
@@ -207,11 +181,11 @@ class Gamma():
 
                 A_ij = self.corr[i,j]**2 * self.cov[i,i] / self.cov[j,j]
 
-                B_ij = 2.0 * self.corr[i,j] * (self.mean[i] - self.corr[i,j] * self.mean[j]* (np.sqrt(self.cov[i,i]) / np.sqrt(self.cov[j,j])))
+                B_ij = 2.0 * self.corr[i,j] * (np.sqrt(self.cov[i,i]) / np.sqrt(self.cov[j,j])) * (self.mean[i] - self.corr[i,j] * self.mean[j]* (np.sqrt(self.cov[i,i]) / np.sqrt(self.cov[j,j]) ))
 
                 C_ij = (self.mean[i] - np.sqrt(A_ij) * self.mean[j])**2 + self.cov[i,i] * (1 - self.corr[i,j]**2)
 
-                quad_mat[i,i] += A_ij * (self.mean[j]**4 + 6 * self.mean[j]**2 * self.cov[j,j] + 2 * self.cov[j,j]**2)
+                quad_mat[i,i] += A_ij * (self.mean[j]**4 + 6 * self.mean[j]**2 * self.cov[j,j] + 3 * self.cov[j,j]**2)
                 quad_mat[i,i] += B_ij * (self.mean[j]**3 + 3*self.mean[j]*self.cov[j,j])
                 quad_mat[i,i] += C_ij * (self.mean[j]**2 + self.cov[j,j])
 
