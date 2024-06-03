@@ -123,7 +123,13 @@ class Gamma():
 
         # return M_3_vec  + (A_mat @ M_3_vec) + (B_mat @ M_2_vec)
 
-        std_devs = np.sqrt(np.diag(self.cov))
+        if self.cov.size == 1:
+            s_cov = np.reshape(self.cov, (1, 1))
+        
+        else:
+            s_cov = deepcopy(self.cov)
+
+        std_devs = np.sqrt(np.diag(s_cov))
         # print(std_devs, "std_devs")
         self.corr = self.cov / np.outer(std_devs, std_devs)
 
@@ -149,7 +155,13 @@ class Gamma():
 
     def quadruple_gamma(self):
 
-        std_devs = np.sqrt(np.diag(self.cov))
+        if self.cov.size == 1:
+            s_cov = np.reshape(self.cov, (1, 1))
+        
+        else:
+            s_cov = deepcopy(self.cov)
+
+        std_devs = np.sqrt(np.diag(s_cov))
         # print(std_devs, "std_devs")
 
         self.corr = self.cov / np.outer(std_devs, std_devs)
@@ -247,8 +259,8 @@ class Gamma():
                 # quad_mat[i,j] = A_mat[i,j]*M_4_vec[i] + B_mat_off_diag[i,j] * M_3_vec[i] + \
                 #                 A_mat[j,i]*M_4_vec[j] + B_mat_off_diag[j,i] * M_3_vec[j]
 
-                A_ij = self.corr[i,j] * np.sqrt(self.cov[i,i] / self.cov[j,j])
-                A_ji = self.corr[j,i] * np.sqrt(self.cov[j,j] / self.cov[i,i])
+                A_ij = self.corr[i,j] * np.sqrt(self.cov[j,j] / self.cov[i,i])
+                A_ji = self.corr[j,i] * np.sqrt(self.cov[i,i] / self.cov[j,j])
 
                 B_ij = self.mean[j] - self.corr[i,j] * self.mean[i] * np.sqrt(self.cov[j,j] / self.cov[i,i])
                 B_ji = self.mean[i] - self.corr[j,i] * self.mean[j] * np.sqrt(self.cov[i,i] / self.cov[j,j])

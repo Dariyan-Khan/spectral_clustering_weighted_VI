@@ -128,8 +128,9 @@ class R():
             D_value = z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
             D_value = D_value.reshape(-1)
             D += D_value
-            
         
+        C = np.reshape(C, -1)
+        D = np.reshape(D, -1)
 
         
         self.alpha = C/2
