@@ -106,7 +106,7 @@ class R():
             assert False
      
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, real_cov=None):
 
         C = 0
         D = 0
@@ -119,7 +119,7 @@ class R():
             μ = μ_vi_list[data_group]
 
 
-            cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
+            cov_0 = real_cov
             sigma_inv = np.linalg.inv(cov_0)
             # sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
@@ -129,14 +129,6 @@ class R():
             D_value = D_value.reshape(-1)
             D += D_value
             
-            # except ValueError:
-            #     print(f"==>> D: {D}")
-            #     print(f"==>> phi_var.conc[k]: {phi_var.conc[k]}")
-            #     print(f"==>> norm_datapoint: {norm_datapoint}")
-            #     print(f"==>> sigma_inv: {sigma_inv}")
-            #     print(f"==>> μ.mean: {μ.mean}")
-            #     print(f"==>> phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean): {phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)}")
-            #     assert False
         
 
         
