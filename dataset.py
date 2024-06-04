@@ -37,6 +37,8 @@ class Dataset():
         self.r_vars = [R(self.d-1) for _ in range(self.N)]
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
         self.phi_var = Phi(self.K)
+        self.synthetic=True
+        self.true_labels = None
 
 
 
@@ -74,13 +76,23 @@ class Dataset():
 
 
 
+        # num_elements = len(self.z_vars)
+        # num_correct = 0
+        # for i in range(num_elements):
+        #     if i % 2 == 0:
+        #         num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
+        #     else:
+        #         num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
+
+        
         num_elements = len(self.z_vars)
         num_correct = 0
-        for i in range(num_elements):
-            if i % 2 == 0:
-                num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
-            else:
-                num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
+        #print(f"==>> self.true_labels: {self.true_labels}")
+        if self.synthetic:
+            for (z_var, true_label) in zip(self.z_vars, self.true_labels):
+                num_correct += z_var.probs[true_label] > 0.5
+        
+        fraction_correct = num_correct / num_elements
 
         print(f"""Iteration {epoch} results:
                   
@@ -128,7 +140,7 @@ class Dataset():
                     First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
                     average number in first group: {sum([x.probs[0] for x in self.z_vars])}
                     average number in second group: {sum([x.probs[1] for x in self.z_vars])}
-                    fraction correct: {num_correct / num_elements}
+                    fraction correct: {fraction_correct}
 
 
                 _____________________________________________________________________
@@ -172,19 +184,41 @@ if __name__ == '__main__':
 
     # Generate samples alternately
     samples = np.zeros((n_samples, 2))
+    true_labels = np.zeros(n_samples, dtype=int)
+
+    # for i in range(n_samples):
+    #     if i % 2 == 0:
+    #         samples[i] = np.random.multivariate_normal(μ_0, cov_0)
+    #         true_labels[i] = 0
+
+    #     else:
+    #         samples[i] = np.random.multivariate_normal(μ_1, cov_1)
+    #         true_labels[i] = 1
+
+        
     for i in range(n_samples):
-        if i % 2 == 0:
+        if np.random.random() < 0.5:
             samples[i] = np.random.multivariate_normal(μ_0, cov_0)
+            true_labels[i] = 0
+
         else:
             samples[i] = np.random.multivariate_normal(μ_1, cov_1)
+            true_labels[i] = 1
 
     #print(f"==>> samples: {samples}")
 
     
     ds = Dataset(samples, emb_dim=2, N=n_samples, K=2)
+    ds.true_labels = true_labels
 
+    # for i in range(0,len(ds.z_vars)):
+    #     ds.z_vars[i].probs = [0.8, 0.2] if i % 2 == 0 else [0.2, 0.8]
+    
     for i in range(0,len(ds.z_vars)):
-        ds.z_vars[i].probs = [0.8, 0.2] if i % 2 == 0 else [0.2, 0.8]
+        if ds.true_labels[i] == 0:
+            ds.z_vars[i].probs = [0.8, 0.2] 
+        else:
+            ds.z_vars[i].probs = [0.2, 0.8]
 
     assumed_dof = 5 #= d+3
 
