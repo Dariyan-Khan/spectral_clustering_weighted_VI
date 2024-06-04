@@ -1,5 +1,5 @@
 import numpy as np
-from sigma_inv import sigma_inv_approx, sigma_expectation
+from sigma_inv import sigma_inv_approx, sigma_expectation, jensen_approx
 from scipy.special import digamma
 
 class Z():
@@ -17,7 +17,7 @@ class Z():
         self.d = d
 
     
-    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False):
+    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False, real_cov=None):
 
         log_probs = np.array([1/self.K for _ in range(self.K)])
 
@@ -36,21 +36,10 @@ class Z():
                 self.d + sigma_star.nu
             )
 
-            # Using log of det of expecation
 
-            
+            # cov = real_cov
 
-            # print("determinent:", np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
-            
-            # dett = np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu))
-            # if dett < 0:
-            #     print("det is negative:")
-            #     sigma_expectation(sigma_star, γ, ν=sigma_star.nu, verbose=True)
-            #     assert False
-
-            # P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
-
-            Sigma_inv = sigma_inv_approx(sigma_star, γ)
+            Sigma_inv = jensen_approx(sigma_star, γ) #np.linalg.inv(cov)
 
             norm_datapoint = norm_datapoint.reshape(-1, 1)
 
@@ -62,26 +51,12 @@ class Z():
             
             P_k = P_k_1 + P_k_2
 
-            if verbose:
-                #print(f"Class {k}: P_k={P_k} and digamma(phi.conc[k])={digamma(phi.conc[k])}")
-                print()
-
-
             log_probs[k] = P_k + digamma(phi.conc[k]) # np.log(phi.conc[k])
 
-        
 
         new_probs = np.exp(log_probs - np.logaddexp.reduce(log_probs))
 
-        if verbose:
-            # print(f"log_probs: {log_probs}")
-            # print(f"new probabilities: {new_probs}")
-            # print()
-            pass
         new_probs = new_probs.reshape(-1,1)
 
         self.probs = new_probs
 
-
-            
-        

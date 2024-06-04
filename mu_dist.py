@@ -23,27 +23,51 @@ class Mu():
 
     
 
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints, real_cov=None):
 
         n_k = 0
         B = 0
 
-
         for (i, data) in enumerate(datapoints.normed_embds):
 
-            n_k += phi_var.conc[self.k]
-            B += r_vi_list[i].first_moment * phi_var.conc[self.k] * data.T
+            assert len(data.shape) <= 2
+            # print(f"==>> r_vi_list[i].first_moment: {r_vi_list[i].first_moment}")
+            z = z_vi_list[i]
+            n_k += z.probs[self.k] #phi_var.conc[self.k
+            B += r_vi_list[i].first_moment * z.probs[self.k] * data
+
+        # print(f"==>> B.shape: {B.shape}")
 
 
-        sigma_inv_estimate = sigma_inv_approx(sigma_star_k, γ_k, α=sigma_star_k.nu)
+        cov_0 = real_cov
 
+        sigma_inv_estimate = np.linalg.inv(cov_0)
 
-        B = np.matmul(B, sigma_inv_estimate)
+        # print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
+
+        # print(f"==>> B.shape: {B.shape}")
+
+        print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
+        print(f"==>> B.shape: {B.shape}")
+
+        B = np.matmul(sigma_inv_estimate, B.T)
                 
         A = sigma_inv_estimate*n_k + np.linalg.inv(self.prior_cov)
+
+
         A_inv = np.linalg.inv(A)
-    
-        B = np.reshape(B, (-1, 1))
+
+        #B = np.matmul(A_inv, np.matmul(B.T, sigma_inv_estimate))
+
+        print(f"==>> B: {B}")
+        print(f"==>> B.shape: {B.shape}")
 
         self.mean = np.matmul(A_inv, B)
         self.cov = A_inv
+
+        # self.mean = self.mean / np.linalg.norm(self.mean)
+
+
+
+
+    

@@ -1,8 +1,9 @@
 import numpy as np
 from scipy.stats import norm
-from sigma_inv import sigma_inv_approx
+from sigma_inv import sigma_inv_approx, jensen_approx
 from scipy.special import logsumexp
 from scipy.optimize import minimize_scalar
+from copy import deepcopy
 
 class R():
 
@@ -21,24 +22,16 @@ class R():
             self.beta = beta
 
         self.d = d
-        # self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
-        # self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
-        # self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
+        self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+        self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
+        self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
 
-        self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-        self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-        self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+        # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+        # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+        # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
-        # print(f"the d used in R: {self.d}")
-        # print(f"the alpha used in R: {self.α}")
-        # print(f"the beta used in R: {self.β}")
-        # print(f"the norm constant: {self.norm_const}")
-        # print(f"self.compute_Id(order=self.d+1): {self.compute_Id(order=self.d+1)}")
-        # print(f"self.compute_Id(order=self.d+2): {self.compute_Id(order=self.d+2)}")
-        # print(f"the first_moment used in R: {self.first_moment}")
-        # print(f"the second_moment used in R: {self.second_moment}")
+        self.pdf = lambda x: ((x**(self.d)) * np.exp(-self.alpha * (x - self.beta)**2)) /  self.norm_const
 
-        # assert False
     
     def compute_Id(self, order):
         # Compute I_0 and I_1 which are needed for starting the recursion
@@ -52,8 +45,8 @@ class R():
             return I_1
         
         # Initialize previous two values for the recursion
-        previous = I_0
-        current = I_1
+        previous = deepcopy(I_0)
+        current = deepcopy(I_1)
         
         # Recursively compute I_d using only the last two values
         for i in range(2, order + 1):
@@ -68,10 +61,10 @@ class R():
 
         # I_0 = np.sqrt(np.pi / self.alpha) * norm.cdf(self.beta * np.sqrt(2 * self.alpha))
         # I_1 = self.beta * I_0 + np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)
-        eps = 1e-6
+        eps = 1e-4
 
         log_I_0 = 0.5 * np.log(np.pi / self.alpha) + norm.logcdf(self.beta * np.sqrt(2 * self.alpha))
-        log_I_1 =  np.log(self.beta * np.exp(log_I_0) + np.exp(-self.alpha * self.beta**2) / (2 * self.alpha) + eps)  #np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
+        log_I_1 =  np.log(self.beta * np.exp(log_I_0) + (np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)) + eps)  #np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
 
         # If order is 0 or 1, return log I_0 or log I_1 directly
         if order == 0:
@@ -80,61 +73,71 @@ class R():
             return log_I_1
 
         # Initialize previous two values for the recursion
-        log_previous = log_I_0
-        log_current = log_I_1
+        log_previous = deepcopy(log_I_0)
+        log_current = deepcopy(log_I_1)
 
         # Recursively compute log I_d using only the last two values
         for i in range(2, order + 1):
             #log_term1 = np.log(self.beta * np.exp(log_current))
-            log_term2 = log_previous + np.log((i - 1) / (2 * self.alpha) + eps)
-            # log_next_value = logsumexp([log_term1, log_term2])
-            new_inner_log = self.beta * np.exp(log_current) + np.exp(log_term2) + eps
+            # log_term2 = log_previous + np.log((i - 1) / (2 * self.alpha) + eps)
+            # # log_next_value = logsumexp([log_term1, log_term2])
+            # new_inner_log = self.beta * np.exp(log_current) + np.exp(log_term2) + eps
 
             # if new_inner_log<0:
             #     return NotImplementedError
 
-            log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_term2) + eps)
+            #log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_term2) + eps)
+            print(f"inner log: {self.beta * np.exp(log_current) + np.exp(log_previous) * (i - 1) / (2 * self.alpha) + eps}")
+            log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_previous) * (i - 1) / (2 * self.alpha) + eps)
 
             log_previous, log_current = log_current, log_next_value
 
         # The log_current variable now holds the value of log I_d
         return log_current
     
-    def update_moments(self, norm_embd=None):
-        # try:
-        self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-        self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-        self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+    def update_moments(self, norm_embd):
+        try:
+            self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+            self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
+            self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
         
-        # except Exception:
-        #     print(f"==>> norm_embd: {norm_embd}")
-        #     assert False
+        except Exception:
+            print(f"==>> norm_embd: {norm_embd}")
+            assert False
      
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, real_cov=None):
 
         C = 0
         D = 0
 
         norm_datapoint = norm_datapoint.reshape(-1, 1)
-
         for k in range (0, len(z_i.probs)):
             data_group = k
             sigma = sigma_star_vi_list[data_group]
             γ = γ_vi_list[data_group]
             μ = μ_vi_list[data_group]
 
-            sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
-            C += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
-    
+            #cov_0 = real_cov
+            # sigma_inv = np.linalg.inv(cov_0)
+            sigma_inv = jensen_approx(sigma, γ)
+            # sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
+            C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+
+            D_value = z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            D_value = D_value.reshape(-1)
+            D += D_value
+        
+        C = np.reshape(C, -1)
+        D = np.reshape(D, -1)
+
+        
         self.alpha = C/2
         self.beta = D / C
 
         self.update_moments(norm_datapoint)
-    
 
 
     def function_to_maximize(self, r):
