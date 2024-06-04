@@ -39,6 +39,7 @@ class Dataset():
         self.phi_var = Phi(self.K)
 
 
+
             
     def spectral_emb(self):
         eigvals, eigvecs = np.linalg.eig(self.adj_mat)
@@ -176,11 +177,25 @@ class Dataset():
 
         num_elements = len(self.z_vars)
         num_correct = 0
+
         for i in range(num_elements):
             if i % 2 == 0:
                 num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
             else:
                 num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
+        
+        # if self.synthetic:
+        #     for (z_var, true_label) in zip(self.z_vars, self.true_labels):
+        #         num_correct += z_var.probs[true_label] > 0.5
+        #         # if i % 2 == 0:
+        #         #     num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
+        #         # else:
+        #         #     num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
+        
+        fraction_correct = num_correct / num_elements
+
+        # real_num_in_first_group = sum([1-lab for lab in self.true_labels])
+        # real_num_in_second_group = sum(self.true_labels)
 
         print(f"""Iteration {epoch} results:
                   
@@ -222,8 +237,7 @@ class Dataset():
                     First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
                     average number in first group: {sum([x.probs[0] for x in self.z_vars])}
                     average number in second group: {sum([x.probs[1] for x in self.z_vars])}
-                    fraction correct: {num_correct / num_elements}
-
+                    fraction correct: {fraction_correct}
 
                 _____________________________________________________________________
                     
@@ -233,8 +247,6 @@ class Dataset():
                     r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
 
                     true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
-
-                    MLE_r_values: {[x.MLE() for x in self.r_vars[:num_els]]}
 
                  _____________________________________________________________________
 
@@ -257,9 +269,13 @@ class Synthetic_data(Dataset):
         self.mean_len = len(μ_1)
         self.N_t=N_t
         self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
-         # number of data points
 
         super().__init__(self.adj_mat, emb_dim=self.mean_len, K=2)
+
+        # self.bern_params = np.array(self.bern_params)
+        # self.true_labels = self.bern_params[:,1]
+        # self.true_labels = np.array(self.true_labels, dtype=int)
+
 
 
     def find_delta_inv(self, μ_1, μ_2, exp_rho):
@@ -288,7 +304,7 @@ class Synthetic_data(Dataset):
 
     def simulate_adj_mat(self, prior, μ_1, μ_2):
         μ_mat = np.stack((μ_1, μ_2), axis=1)
-        # bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+        #bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
         bern_params = [(prior(), i % 2) for i in range(self.N_t)]
         adj_mat = np.zeros((self.N_t, self.N_t))
 
@@ -355,7 +371,7 @@ if __name__ == '__main__':
     #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=20) 
+    ds.dataset_vi(max_iter=10) 
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
