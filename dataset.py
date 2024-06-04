@@ -105,7 +105,7 @@ class Dataset():
         print("sigma inv estimates:", full_sigma_inv_estimates)
 
 
-        for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
+        for i, (r_var, z_var) in enumerate(zip(self.r_vars, self.z_vars)):
             C=0
             D=0
             norm_datapoint = self.normed_embds[i]
@@ -119,8 +119,8 @@ class Dataset():
 
                 sigma_inv = full_sigma_inv_estimates[data_group]
 
-            C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+                C += z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+                D += z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
 
 
             r_var.alpha = C / 2
@@ -165,7 +165,7 @@ class Dataset():
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
             
@@ -349,13 +349,13 @@ if __name__ == '__main__':
 
     # Set means to be the true value and see what happens
 
-    μ_list = [μ_1, μ_2]
+    # μ_list = [μ_1, μ_2]
 
-    for k in range(ds.K):
-        ds.means_vars[k].mean = μ_list[k]
+    # for k in range(ds.K):
+    #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=5) 
+    ds.dataset_vi(max_iter=20) 
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
