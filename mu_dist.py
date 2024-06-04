@@ -43,6 +43,7 @@ class Mu():
 
         # sigma_inv_estimate = np.linalg.inv(cov_0)
         sigma_inv_estimate = jensen_approx(sigma_star_k, γ_k)         #sigma_inv_approx(sigma_star_k, γ_k, α=0.01)
+        sigma_inv_estimate = np.reshape(sigma_inv_estimate, (self.d, self.d))
 
         # print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
 

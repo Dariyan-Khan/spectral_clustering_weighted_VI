@@ -27,19 +27,23 @@ class Z():
             γ = γ_list[k]
 
             # Using the expectation of trace as an upper bound
-            P_k_1 = -0.5 * (
-                np.trace(
-                    (sigma_star.scale /(sigma_star.dof - self.d)) + \
-                    γ.cov + \
-                    np.outer(γ.mean, γ.mean)   
-                ) - \
-                self.d + sigma_star.nu
-            )
+            # P_k_1 = -0.5 * (
+            #     np.trace(
+            #         (sigma_star.scale /(sigma_star.dof - self.d)) + \
+            #         γ.cov + \
+            #         np.outer(γ.mean, γ.mean)   
+            #     ) - \
+            #     self.d + sigma_star.nu
+            # )
 
+
+            # Using log of det of expecation
+            P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
 
             # cov = real_cov
 
             Sigma_inv = jensen_approx(sigma_star, γ) #np.linalg.inv(cov)
+            Sigma_inv = np.reshape(Sigma_inv, (self.d, self.d))
 
             norm_datapoint = norm_datapoint.reshape(-1, 1)
 

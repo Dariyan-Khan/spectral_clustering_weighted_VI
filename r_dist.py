@@ -122,6 +122,7 @@ class R():
             #cov_0 = real_cov
             # sigma_inv = np.linalg.inv(cov_0)
             sigma_inv = jensen_approx(sigma, γ)
+            sigma_inv = np.reshape(sigma_inv, (self.d+1, self.d+1))
             # sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
             C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
