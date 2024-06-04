@@ -270,7 +270,7 @@ class Gamma():
                                     R_tensor[i,j,k] * (self.mean[k]**2 + self.cov[k,k])
                     
                 
-                print(f"==>> off_diag_sum_term: {off_diag_sum_term}")
+                # print(f"==>> off_diag_sum_term: {off_diag_sum_term}")
                 assert False
         
 

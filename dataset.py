@@ -20,7 +20,7 @@ from scipy.stats import beta
 
 class Dataset():
     
-    def __init__(self, adj_mat, emb_dim, K=None):
+    def __init__(self, adj_mat, emb_dim, K=None, synthetic=False):
         self.adj_mat = adj_mat
         self.d = emb_dim
         self.N = len(adj_mat)
@@ -37,6 +37,8 @@ class Dataset():
         self.r_vars = [R(self.d-1) for _ in range(self.N)]
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
         self.phi_var = Phi(self.K)
+        
+        self.synthetic=synthetic
 
 
             
@@ -102,7 +104,7 @@ class Dataset():
 
         full_sigma_inv_estimates = [np.linalg.inv(cov_mat) for cov_mat in gmm.cluster_covs]
 
-        print("sigma inv estimates:", full_sigma_inv_estimates)
+        # print("sigma inv estimates:", full_sigma_inv_estimates)
 
 
         for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
@@ -176,11 +178,16 @@ class Dataset():
 
         num_elements = len(self.z_vars)
         num_correct = 0
-        for i in range(num_elements):
-            if i % 2 == 0:
-                num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
-            else:
-                num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
+        if self.synthetic:
+            for (z_var, true_label) in zip(self.z_vars, self.true_labels):
+                num_correct += z_var.probs[true_label] > 0.5
+                # if i % 2 == 0:
+                #     num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
+                # else:
+                #     num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
+        
+        fraction_correct = num_correct / num_elements
+
 
         print(f"""Iteration {epoch} results:
                   
@@ -222,7 +229,7 @@ class Dataset():
                     First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
                     average number in first group: {sum([x.probs[0] for x in self.z_vars])}
                     average number in second group: {sum([x.probs[1] for x in self.z_vars])}
-                    fraction correct: {num_correct / num_elements}
+                    fraction correct: {fraction_correct if self.synthetic else "N/A"}
 
 
                 _____________________________________________________________________
@@ -257,9 +264,14 @@ class Synthetic_data(Dataset):
         self.mean_len = len(μ_1)
         self.N_t=N_t
         self.adj_mat, self.bern_params = self.simulate_adj_mat(prior, μ_1, μ_2)
+
          # number of data points
 
-        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=2)
+        super().__init__(self.adj_mat, emb_dim=self.mean_len, K=2, synthetic=True)
+
+        self.bern_params = np.array(self.bern_params)
+        self.true_labels = self.bern_params[:,1]
+        self.true_labels = np.array(self.true_labels, dtype=int)
 
 
     def find_delta_inv(self, μ_1, μ_2, exp_rho):
@@ -343,7 +355,7 @@ if __name__ == '__main__':
 
     α = 7
     β = 2
-    prior = lambda : 0.5 #beta.rvs(α, β)
+    prior = lambda : beta.rvs(α, β)
 
     ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
 

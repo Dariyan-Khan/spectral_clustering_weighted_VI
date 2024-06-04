@@ -49,8 +49,8 @@ class Mu():
 
         # print(f"==>> B.shape: {B.shape}")
 
-        print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
-        print(f"==>> B.shape: {B.shape}")
+        # print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
+        # print(f"==>> B.shape: {B.shape}")
 
         B = np.matmul(sigma_inv_estimate, B.T)
                 
@@ -61,8 +61,8 @@ class Mu():
 
         #B = np.matmul(A_inv, np.matmul(B.T, sigma_inv_estimate))
 
-        print(f"==>> B: {B}")
-        print(f"==>> B.shape: {B.shape}")
+        # print(f"==>> B: {B}")
+        #print(f"==>> B.shape: {B.shape}")
 
         self.mean = np.matmul(A_inv, B)
         self.cov = A_inv
