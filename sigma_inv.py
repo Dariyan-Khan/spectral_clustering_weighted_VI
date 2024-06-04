@@ -8,15 +8,13 @@ def sigma_expectation(sigma_star, γ, ν, verbose=False):
     A = first_moment + γ.cov + np.outer(γ.mean, γ.mean)
     B = np.sqrt(ν) * γ.mean
     B = B.reshape(-1, 1)
-    C = ν
-    C = np.array([[C]])
 
-    block_mat = np.block([[A, B], [B.T, C]])
+    block_mat = np.block([[A, B], [B.T, ν]])
 
     if verbose:
         print("block_mat:", block_mat)
 
-    return np.block([[A, B], [B.T, C]])
+    return np.block([[A, B], [B.T, ν]])
 
 
 def sigma_sq_expectation(sigma_star, γ, ν):
@@ -28,7 +26,7 @@ def sigma_sq_expectation(sigma_star, γ, ν):
     γ_quad = γ.quadruple_gamma()
 
     A = second_moment + (first_moment @ γ_outer_product) + \
-        (γ_outer_product @ first_moment) + ν * γ_quad
+        (γ_outer_product @ first_moment) +  γ_quad + ν * γ_outer_product
     
 
 
@@ -58,7 +56,7 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
 
     ν = sigma_star.nu
     
-    return 3 * α * np.eye(d) - 3 * α**2 * sigma_expectation(sigma_star, γ, ν) + α**3 * sigma_sq_expectation(sigma_star, γ, ν)
+    return (1 / α**2 ) * (3 * α * np.eye(d) - 3 * α**2 * sigma_expectation(sigma_star, γ, ν) + α**3 * sigma_sq_expectation(sigma_star, γ, ν))
 
 
 

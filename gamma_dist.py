@@ -256,11 +256,7 @@ class Gamma():
                 quad_mat[i,j] += A_ji * (self.mean[j]**4 + 6 * self.mean[j]**2 * self.cov[j,j] + 3 * self.cov[j,j]**2) + \
                                 B_ji * (self.mean[j]**3 + 3 * self.mean[j] * self.cov[j,j])
                 
-                # print(f"==>> A_ij * (self.mean[i]**4 + 6 * self.mean[i]**2 * self.cov[i,i] + 3 * self.cov[i,i]**2): {A_ij * (self.mean[i]**4 + 6 * self.mean[i]**2 * self.cov[i,i] + 3 * self.cov[i,i]**2)}")
-                # print(f"==>> B_ij * (self.mean[i]**3 + 3 * self.mean[i] * self.cov[i,i]): {B_ij * (self.mean[i]**3 + 3 * self.mean[i] * self.cov[i,i])}")
-                # print(f"==>> A_ji * (self.mean[j]**4 + 6 * self.mean[j]**2 * self.cov[j,j] + 3 * self.cov[j,j]**2): {A_ji * (self.mean[j]**4 + 6 * self.mean[j]**2 * self.cov[j,j] + 3 * self.cov[j,j]**2)}")
-                # print(f"==>> B_ji * (self.mean[j]**3 + 3 * self.mean[j] * self.cov[j,j]): {B_ji * (self.mean[j]**3 + 3 * self.mean[j] * self.cov[j,j])}")
-                # print(f"==>> quad_mat[i,j]: {quad_mat[i,j]}")
+                
 
                 off_diag_sum_term = 0
                 for k in range(self.dim):
