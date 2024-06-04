@@ -38,6 +38,7 @@ class Dataset():
         self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
         self.phi_var = Phi(self.K)
         
+        # for synthetic dataset
         self.synthetic=synthetic
 
 
@@ -74,6 +75,31 @@ class Dataset():
         
         # initialise the mean gamma and sigma
 
+        # reversed_labels = False
+
+        # if self.synthetic:
+        #     print(f"==>> gmm.cluster_centres[0]: {gmm.cluster_centres[0]}")
+        #     print(f"==> μ_1: {self.μ_1}")
+        #     if np.linalg.norm(gmm.cluster_centres[0] - self.μ_1) > np.linalg.norm(gmm.cluster_centres[0] - self.μ_2):
+        #         reversed_labels = True
+
+        # print(f"reversed_labels: {reversed_labels}")
+        
+        # for z_var, data in zip(self.z_vars, self.normed_embds):
+        #     data = data.reshape(1, -1)
+
+        #     predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
+        #     predicted_probs = predicted_probs[0]
+
+        #     # if reversed_labels:
+        #     #     z_var.probs = np.array([1-p for p in predicted_probs])
+            
+        #     # else:
+        #     #   z_var.probs = predicted_probs
+
+        #     z_var.probs = predicted_probs
+
+
 
         for k in range(self.K):
             self.means_vars[k].prior_cov = mu_cov
@@ -107,13 +133,15 @@ class Dataset():
         # print("sigma inv estimates:", full_sigma_inv_estimates)
 
 
-        for i, (r_var, label) in enumerate(zip(self.r_vars, gmm.labels)):
+        for i, (r_var, z_var) in enumerate(zip(self.r_vars, self.z_vars)):
             C=0
             D=0
             norm_datapoint = self.normed_embds[i]
             norm_datapoint = norm_datapoint.reshape(-1, 1)
 
-            for k in range (0, len(self.z_vars[i].probs)):
+            
+
+            for k in range (0, len(z_var.probs)):
                 data_group = k
                 sigma = ds.sigma_star_vars[data_group]
                 γ = ds.gamma_vars[data_group]
@@ -121,8 +149,8 @@ class Dataset():
 
                 sigma_inv = full_sigma_inv_estimates[data_group]
 
-            C += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
-            D += ds.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            C += self.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            D += self.phi_var.conc[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
 
 
             r_var.alpha = C / 2
@@ -147,12 +175,12 @@ class Dataset():
 
         self.print_progress(0)
 
-        for i, (z_var, data) in enumerate(zip(self.z_vars, self.normed_embds)):
-            data = data.reshape(1, -1)
+        # for i, (z_var, data) in enumerate(zip(self.z_vars, self.normed_embds)):
+        #     data = data.reshape(1, -1)
 
-            predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
-            predicted_probs = predicted_probs[0]
-            z_var.probs = np.array([1.0,0.0]) if i % 2 == 0 else np.array([0.0,1.0])  
+        #     predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
+        #     predicted_probs = predicted_probs[0]
+        #     z_var.probs = predicted_probs
 
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
         for epoch in range(1,max_iter+1):
@@ -166,8 +194,8 @@ class Dataset():
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
             
@@ -187,6 +215,9 @@ class Dataset():
                 #     num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
         
         fraction_correct = num_correct / num_elements
+
+        real_num_in_first_group = sum([1-lab for lab in self.true_labels])
+        real_num_in_second_group = sum(self.true_labels)
 
 
         print(f"""Iteration {epoch} results:
@@ -231,7 +262,8 @@ class Dataset():
                     average number in second group: {sum([x.probs[1] for x in self.z_vars])}
                     fraction correct: {fraction_correct if self.synthetic else "N/A"}
                     true_labels: {self.true_labels[:num_els] if self.synthetic else "N/A"}
-
+                    real_num_in_first_group: {real_num_in_first_group}
+                    real_num_in_second_group: {real_num_in_second_group}
 
                 _____________________________________________________________________
                     
@@ -241,8 +273,6 @@ class Dataset():
                     r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
 
                     true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
-
-                    MLE_r_values: {[x.MLE() for x in self.r_vars[:num_els]]}
 
                  _____________________________________________________________________
 
@@ -303,7 +333,7 @@ class Synthetic_data(Dataset):
         μ_mat = np.stack((μ_1, μ_2), axis=1)
         #bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
         bern_params = [(prior(), i % 2) for i in range(self.N_t)]
-        np.random.shuffle(bern_params) # shuffle the bernoulli parameters for testing purposes
+        ## np.random.shuffle(bern_params) # shuffle the bernoulli parameters for testing purposes
         adj_mat = np.zeros((self.N_t, self.N_t))
 
         for i in range(self.N_t):
@@ -360,13 +390,15 @@ if __name__ == '__main__':
     prior = lambda : 0.5 #beta.rvs(α, β)
 
     ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
+    # ds.real_mean_1 = μ_1
+    # ds.real_mean_2 = μ_2
 
     # Set means to be the true value and see what happens
 
-    μ_list = [μ_1, μ_2]
+    # μ_list = [μ_1, μ_2]
 
-    for k in range(ds.K):
-        ds.means_vars[k].mean = μ_list[k]
+    # for k in range(ds.K):
+    #     ds.means_vars[k].mean = μ_list[k]
 
 
     ds.dataset_vi(max_iter=10) 
