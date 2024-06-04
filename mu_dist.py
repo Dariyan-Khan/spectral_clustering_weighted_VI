@@ -1,5 +1,5 @@
 import numpy as np
-from sigma_inv import sigma_inv_approx
+from sigma_inv import sigma_inv_approx, jensen_approx
 
 class Mu():
 
@@ -39,9 +39,10 @@ class Mu():
         # print(f"==>> B.shape: {B.shape}")
 
 
-        cov_0 = real_cov
+        # cov_0 = real_cov
 
-        sigma_inv_estimate = np.linalg.inv(cov_0)
+        # sigma_inv_estimate = np.linalg.inv(cov_0)
+        sigma_inv_estimate = jensen_approx(sigma_star_k, γ_k)         #sigma_inv_approx(sigma_star_k, γ_k, α=0.01)
 
         # print(f"==>> sigma_inv_estimate.shape: {sigma_inv_estimate.shape}")
 
