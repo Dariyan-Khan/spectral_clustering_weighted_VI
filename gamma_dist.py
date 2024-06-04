@@ -25,9 +25,7 @@ class Gamma():
         
         self.nu = None
     
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints, real_cov):
-        cov_0 = real_cov
-        sigma_inv_estimate = np.linalg.inv(cov_0)
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints, real_cov=None):
 
         mean_vec = np.zeros(self.dim)
         cov_mat = np.zeros((self.dim, self.dim))

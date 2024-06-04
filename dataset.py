@@ -172,7 +172,15 @@ class Dataset():
             
             self.print_progress(epoch)
     
-    def print_progress(self, epoch):
+    def print_progress(self, epoch, num_els=10):
+
+        num_elements = len(self.z_vars)
+        num_correct = 0
+        for i in range(num_elements):
+            if i % 2 == 0:
+                num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
+            else:
+                num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
 
         print(f"""Iteration {epoch} results:
                   
@@ -186,10 +194,19 @@ class Dataset():
                  _____________________________________________________________________
 
                     sigma_0_scale: {self.sigma_star_vars[0].scale}
+                    sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
                     sigma_0_dof: {self.sigma_star_vars[0].dof}
+                    sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
+                    sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
+                    sigma_0_mode: {self.sigma_star_vars[0].mode()}
+
 
                     sigma_1_scale: {self.sigma_star_vars[1].scale}
+                    sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
                     sigma_1_dof: {self.sigma_star_vars[1].dof}
+                    sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
+                    sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
+                    sigma_1_mode: {self.sigma_star_vars[1].mode()}
 
 
                 _____________________________________________________________________
@@ -202,22 +219,29 @@ class Dataset():
 
                 _____________________________________________________________________
 
-                    First 10 z probs: {[x.probs for x in self.z_vars[:10]]}
+                    First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
+                    average number in first group: {sum([x.probs[0] for x in self.z_vars])}
+                    average number in second group: {sum([x.probs[1] for x in self.z_vars])}
+                    fraction correct: {num_correct / num_elements}
+
 
                 _____________________________________________________________________
                     
-                    r_first_alpha: {[x.alpha for x in self.r_vars[:10]]}
-                    r_first_beta: {[x.beta for x in self.r_vars[:10]]}
-                    r_first moment: {[x.first_moment for x in self.r_vars[:10]]}
-                    r_second moment: {[x.second_moment for x in self.r_vars[:10]]}
+                    r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
+                    r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
+                    r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
+                    r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
 
-                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(10)]}
+                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
+
+                    MLE_r_values: {[x.MLE() for x in self.r_vars[:num_els]]}
 
                  _____________________________________________________________________
 
                     phi_probs: {self.phi_var.conc}
+                  
+                  
                   """)
-
 
 
 class Synthetic_data(Dataset):

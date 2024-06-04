@@ -95,7 +95,7 @@ class R():
         # The log_current variable now holds the value of log I_d
         return log_current
     
-    def update_moments(self, norm_embd):
+    def update_moments(self, norm_embd=None):
         try:
             self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
             self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
