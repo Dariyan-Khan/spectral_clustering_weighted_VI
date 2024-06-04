@@ -230,6 +230,7 @@ class Dataset():
                     average number in first group: {sum([x.probs[0] for x in self.z_vars])}
                     average number in second group: {sum([x.probs[1] for x in self.z_vars])}
                     fraction correct: {fraction_correct if self.synthetic else "N/A"}
+                    true_labels: {self.true_labels[:num_els] if self.synthetic else "N/A"}
 
 
                 _____________________________________________________________________
@@ -300,8 +301,9 @@ class Synthetic_data(Dataset):
 
     def simulate_adj_mat(self, prior, μ_1, μ_2):
         μ_mat = np.stack((μ_1, μ_2), axis=1)
-        # bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+        #bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
         bern_params = [(prior(), i % 2) for i in range(self.N_t)]
+        np.random.shuffle(bern_params) # shuffle the bernoulli parameters for testing purposes
         adj_mat = np.zeros((self.N_t, self.N_t))
 
         for i in range(self.N_t):
@@ -355,7 +357,7 @@ if __name__ == '__main__':
 
     α = 7
     β = 2
-    prior = lambda : beta.rvs(α, β)
+    prior = lambda : 0.5 #beta.rvs(α, β)
 
     ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
 
@@ -367,7 +369,7 @@ if __name__ == '__main__':
         ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=5) 
+    ds.dataset_vi(max_iter=10) 
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
