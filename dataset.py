@@ -18,7 +18,7 @@ from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta
 
-np.random.seed(44)
+# np.random.seed(44)
 
 class Dataset():
     
@@ -184,7 +184,7 @@ if __name__ == '__main__':
     ds = Dataset(samples, emb_dim=2, N=n_samples, K=2)
 
     for i in range(0,len(ds.z_vars)):
-        ds.z_vars[i].probs = [1.0, 0.0] if i % 2 == 0 else [0.0, 1.0]
+        ds.z_vars[i].probs = [0.8, 0.2] if i % 2 == 0 else [0.2, 0.8]
 
     assumed_dof = 5 #= d+3
 

@@ -1,9 +1,10 @@
 import numpy as np
 from scipy.stats import norm
-from sigma_inv import sigma_inv_approx
+from sigma_inv import sigma_inv_approx, jensen_approx
 from scipy.special import logsumexp
 from scipy.optimize import minimize_scalar
 from copy import deepcopy
+
 
 class R():
 
@@ -119,9 +120,10 @@ class R():
             μ = μ_vi_list[data_group]
 
 
-            cov_0 = real_cov
-            sigma_inv = np.linalg.inv(cov_0)
-            # sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
+            #cov_0 = real_cov
+            #sigma_inv = np.linalg.inv(cov_0)
+            sigma_inv = jensen_approx(sigma, γ)
+            sigma_inv = np.reshape(sigma_inv, (self.d+1, self.d+1))
 
             C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
 

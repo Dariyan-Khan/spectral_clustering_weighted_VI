@@ -1,5 +1,5 @@
 import numpy as np
-from sigma_inv import sigma_inv_approx, sigma_expectation
+from sigma_inv import sigma_inv_approx, sigma_expectation, jensen_approx
 from scipy.special import digamma
 
 class Z():
@@ -27,35 +27,29 @@ class Z():
             γ = γ_list[k]
 
             # Using the expectation of trace as an upper bound
-            P_k_1 = -0.5 * (
-                np.trace(
-                    (sigma_star.scale /(sigma_star.dof - self.d)) + \
-                    γ.cov + \
-                    np.outer(γ.mean, γ.mean)   
-                ) - \
-                self.d + sigma_star.nu
-            )
+            # P_k_1 = -0.5 * (
+            #     np.trace(
+            #         (sigma_star.scale /(sigma_star.dof - self.d)) + \
+            #         γ.cov + \
+            #         np.outer(γ.mean, γ.mean)   
+            #     ) - \
+            #     self.d + sigma_star.nu
+            # )
 
             # Using log of det of expecation
 
-            
-
-            # print("determinent:", np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
-            
-            # dett = np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu))
-            # if dett < 0:
-            #     print("det is negative:")
-            #     sigma_expectation(sigma_star, γ, ν=sigma_star.nu, verbose=True)
-            #     assert False
-
-            # P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
+    
+            P_k_1 = -0.5 * np.log(np.linalg.det(sigma_expectation(sigma_star, γ, ν=sigma_star.nu)))
 
             # Sigma_inv = sigma_inv_approx(sigma_star, γ, α=sigma_star.nu)
 
             #cov = np.array([[0.01, 0.005], [0.005, 0.01]])
-            cov = real_cov
+            # cov = real_cov
 
-            Sigma_inv = np.linalg.inv(cov)
+            # Sigma_inv = np.linalg.inv(cov)
+
+            Sigma_inv = jensen_approx(sigma_star, γ)
+            Sigma_inv = np.reshape(Sigma_inv, (self.d, self.d))
 
             norm_datapoint = norm_datapoint.reshape(-1, 1)
 

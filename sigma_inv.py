@@ -60,12 +60,10 @@ def sigma_inv_approx(sigma_star, γ, α=1): # α is the term added for convergen
 
 
 
-
-
-
-
-
-
+def jensen_approx(sigma_star, γ):
+    ν = sigma_star.nu
+    sigma_exp = sigma_expectation(sigma_star, γ, ν)
+    return np.linalg.inv(sigma_exp)
 
 
 
