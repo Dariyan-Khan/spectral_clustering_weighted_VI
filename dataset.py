@@ -145,12 +145,12 @@ class Dataset():
 
         self.print_progress(0)
 
-        for i, (z_var, data) in enumerate(zip(self.z_vars, self.normed_embds)):
-            data = data.reshape(1, -1)
+        # for i, (z_var, data) in enumerate(zip(self.z_vars, self.normed_embds)):
+        #     data = data.reshape(1, -1)
 
-            predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
-            predicted_probs = predicted_probs[0]
-            z_var.probs = np.array([1.0,0.0]) if i % 2 == 0 else np.array([0.0,1.0])  
+        #     predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
+        #     predicted_probs = predicted_probs[0]
+            # z_var.probs = np.array([1.0,0.0]) if i % 2 == 0 else np.array([0.0,1.0])  
 
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
         for epoch in range(1,max_iter+1):
@@ -165,7 +165,7 @@ class Dataset():
 
             for i in range(self.N):
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                # self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
             
@@ -349,13 +349,13 @@ if __name__ == '__main__':
 
     # Set means to be the true value and see what happens
 
-    μ_list = [μ_1, μ_2]
+    # μ_list = [μ_1, μ_2]
 
-    for k in range(ds.K):
-        ds.means_vars[k].mean = μ_list[k]
+    # for k in range(ds.K):
+    #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=5) 
+    ds.dataset_vi(max_iter=20) 
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
