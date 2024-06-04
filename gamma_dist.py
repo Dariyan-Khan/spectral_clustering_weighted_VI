@@ -221,40 +221,13 @@ class Gamma():
                     
                     
                     Q_tensor[i, j, k] = ((2 * A_dash * np.sqrt(self.cov[j,j]) * self.corr[j,k]) / self.cov[k,k]) * (self.mean[j]*np.sqrt(self.cov[k,k]) - self.mean[k] * self.corr[j,k] * np.sqrt(self.cov[j,j])) + \
-                                        B_dash * (self.mean[j] - (np.sqrt(self.cov[j,j]) * self.corr[j,k] * self.mean[k] / np.sqrt(self.cov[k,k]))) + \
+                                        B_dash * (self.mean[j] - (np.sqrt(self.cov[j,j]) * self.corr[j,k] * self.mean[k] / np.sqrt(self.cov[k,k])) ) + \
                                         C_dash * (np.sqrt(self.cov[j,j]) * self.corr[j,k] / np.sqrt(self.cov[k,k]))
 
 
-                    R_tensor[i,j, k] = A_dash * (self.mean[j]**2 + (self.mean[k]**2 * self.cov[j,j] * self.corr[j,k]**2 / self.cov[k,k]) - (2 * self.mean[j] * np.sqrt(self.cov[j,j]) * self.corr[j,k]*self.mean[k] / np.sqrt(self.cov[k,k]))) + \
-                                        C_dash * (self.mean[k] - ((np.sqrt(self.cov[j,j]) * self.corr[j,k] * self.mean[k]) / np.sqrt(self.cov[k,k])))
+                    R_tensor[i,j, k] = A_dash * (self.mean[j]**2 + (self.mean[k]**2 * self.cov[j,j] * self.corr[j,k]**2 / self.cov[k,k]) - (2 * self.mean[j] * np.sqrt(self.cov[j,j]) * self.corr[j,k]*self.mean[k] / np.sqrt(self.cov[k,k])) + (1-self.corr[j,k]**2)*self.cov[j,j]) + \
+                                        C_dash * (self.mean[j] - ((np.sqrt(self.cov[j,j]) * self.corr[j,k] * self.mean[k]) / np.sqrt(self.cov[k,k])))
                     
-                    
-                    # P_tensor[i, j, k] = self.mean[j] * np.sqrt(self.cov[i,i]) * (self.corr[i, k] - (self.corr[j,k] * self.corr[i,j])) / \
-                    #                     (np.sqrt(self.cov[k,k]) * (1-self.corr[j,k]**2))
-
-                    # Q_tensor[i, j, k] = (self.mean[j]**2 + self.cov[j,j]) * \
-                    #                     (
-                    #                         np.sqrt(self.cov[i,i]) * (self.corr[i, j] - self.corr[j,k] * self.corr[i,k]) / \
-                    #                      (np.sqrt(self.cov[j,j]) * (1-self.corr[j,k]**2))
-                    #                     )
-                    
-                    # print(f"==>> initial Q_tensor[i, j, k]: {Q_tensor[i, j, k]}")
-                    
-                    # Q_tensor[i, j, k] += self.mean[j] * (
-                    #     self.mean[i] + (
-                    #         (
-                    #             np.sqrt(self.cov[i,i]) * np.sqrt(self.cov[j,j]) * self.mean[k] * (self.corr[i,j] * self.corr[j,k] - self.corr[i,k]) + \
-                    #             np.sqrt(self.cov[i,i]) * np.sqrt(self.cov[k,k]) * self.mean[j] * (self.corr[i,k] * self.corr[j,k] - self.corr[i,j])
-
-                    #         ) / ((1 - self.corr[j,k]**2) * np.sqrt(self.cov[j,j]) * np.sqrt(self.cov[k,k]))
-                    #     )
-                    # )
-
-                    
-
-                    # print(f"==>> P_tensor[i, j, k]: {P_tensor[i, j, k]}")
-                    # print(f"==>> final Q_tensor[i, j, k]: {Q_tensor[i, j, k]}")
-                    # assert False
 
 
                     
