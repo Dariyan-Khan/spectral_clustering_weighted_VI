@@ -355,7 +355,7 @@ if __name__ == '__main__':
         ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=5)
+    ds.dataset_vi(max_iter=5) 
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
