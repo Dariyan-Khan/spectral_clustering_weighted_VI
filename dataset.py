@@ -389,7 +389,7 @@ if __name__ == '__main__':
 
     α = 7
     β = 2
-    prior = lambda : 0.5 #beta.rvs(α, β)
+    prior = lambda : beta.rvs(α, β)
 
     ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
     # ds.real_mean_1 = μ_1
