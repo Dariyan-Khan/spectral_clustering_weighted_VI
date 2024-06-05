@@ -83,7 +83,7 @@ class Dataset():
             if np.linalg.norm(gmm.cluster_centres[0] - self.μ_1) > np.linalg.norm(gmm.cluster_centres[0] - self.μ_2):
                 self.reversed_labels = True
 
-        # print(f"reversed_labels: {reversed_labels}")
+        print(f"reversed_labels: {self.reversed_labels}")
         
         # for z_var, data in zip(self.z_vars, self.normed_embds):
         #     data = data.reshape(1, -1)
@@ -96,8 +96,6 @@ class Dataset():
             
             # else:
             #   z_var.probs = predicted_probs
-
-            z_var.probs = predicted_probs
 
 
 
@@ -335,8 +333,8 @@ class Synthetic_data(Dataset):
 
     def simulate_adj_mat(self, prior, μ_1, μ_2):
         μ_mat = np.stack((μ_1, μ_2), axis=1)
-        #bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
-        bern_params = [(prior(), i % 2) for i in range(self.N_t)]
+        bern_params = [(prior(), np.random.randint(0,2)) for _ in range(self.N_t)]
+        # bern_params = [(prior(), i % 2) for i in range(self.N_t)]
         ## np.random.shuffle(bern_params) # shuffle the bernoulli parameters for testing purposes
         adj_mat = np.zeros((self.N_t, self.N_t))
 
