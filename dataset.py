@@ -40,6 +40,7 @@ class Dataset():
         
         # for synthetic dataset
         self.synthetic=synthetic
+        self.reversed_labels=False
 
 
             
@@ -75,13 +76,12 @@ class Dataset():
         
         # initialise the mean gamma and sigma
 
-        # reversed_labels = False
 
-        # if self.synthetic:
-        #     print(f"==>> gmm.cluster_centres[0]: {gmm.cluster_centres[0]}")
-        #     print(f"==> μ_1: {self.μ_1}")
-        #     if np.linalg.norm(gmm.cluster_centres[0] - self.μ_1) > np.linalg.norm(gmm.cluster_centres[0] - self.μ_2):
-        #         reversed_labels = True
+        if self.synthetic:
+            print(f"==>> gmm.cluster_centres[0]: {gmm.cluster_centres[0]}")
+            print(f"==> μ_1: {self.μ_1}")
+            if np.linalg.norm(gmm.cluster_centres[0] - self.μ_1) > np.linalg.norm(gmm.cluster_centres[0] - self.μ_2):
+                self.reversed_labels = True
 
         # print(f"reversed_labels: {reversed_labels}")
         
@@ -91,13 +91,13 @@ class Dataset():
         #     predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
         #     predicted_probs = predicted_probs[0]
 
-        #     # if reversed_labels:
-        #     #     z_var.probs = np.array([1-p for p in predicted_probs])
+            # if reversed_labels:
+            #     z_var.probs = np.array([1-p for p in predicted_probs])
             
-        #     # else:
-        #     #   z_var.probs = predicted_probs
+            # else:
+            #   z_var.probs = predicted_probs
 
-        #     z_var.probs = predicted_probs
+            z_var.probs = predicted_probs
 
 
 
@@ -194,7 +194,7 @@ class Dataset():
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
 
             for i in range(self.N):
-                # self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
             self.phi_var.vi(self.z_vars)
@@ -208,7 +208,11 @@ class Dataset():
         num_correct = 0
         if self.synthetic:
             for (z_var, true_label) in zip(self.z_vars, self.true_labels):
-                num_correct += z_var.probs[true_label] > 0.5
+                
+                if not self.reversed_labels:
+                    num_correct += z_var.probs[true_label] > 0.5
+                else:
+                    num_correct += z_var.probs[true_label] < 0.5
                 # if i % 2 == 0:
                 #     num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
                 # else:
@@ -401,7 +405,7 @@ if __name__ == '__main__':
     #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=10) 
+    ds.dataset_vi(max_iter=20) 
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
