@@ -72,6 +72,16 @@ class Dataset():
 
             predicted_probs = self.gmm.fitted_gmm.predict_proba(data)
             predicted_probs = predicted_probs[0]
+
+            # if predicted_probs[0] > predicted_probs[1]:
+            #     predicted_probs[0]=0.8
+            #     predicted_probs[1]=0.2
+            
+            # else:
+            #     predicted_probs[0]=0.2
+            #     predicted_probs[1]=0.8
+
+
             z_var.probs = predicted_probs
         
         # initialise the mean gamma and sigma
