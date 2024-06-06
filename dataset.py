@@ -170,6 +170,8 @@ class Dataset():
 
         # initialise phi variables
 
+        # self.phi_var.vi(self.z_vars)
+
         # for k in range(self.K):
         #     # count number of labels in group k
         #     num_labels = sum([1 for lab in gmm.labels if lab == k])
@@ -203,7 +205,8 @@ class Dataset():
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i], self.embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
-            self.phi_var.vi(self.z_vars)
+            if epoch>5:
+                self.phi_var.vi(self.z_vars)
             
             
             self.print_progress(epoch)

@@ -199,6 +199,11 @@ class R():
 
     
     def update_moments(self, norm_embd=None,embd=None ):
+        # if self.beta<-1:
+        #     self.first_moment = 0
+        #     self.second_moment = 0
+        #     return
+
         with warnings.catch_warnings():
             warnings.simplefilter("error", RuntimeWarning) 
 
