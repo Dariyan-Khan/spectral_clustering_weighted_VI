@@ -271,14 +271,14 @@ class R():
         C = np.reshape(C, -1)
         D = np.reshape(D, -1)
 
-        if D < 0:
-            print()
-            print(f"==>> D_collection: {D_collection}")
-            print(f"==>> z_probs_collection: {z_probs_collection}")
-            print(f"==>> norm_datapoint_collection: {norm_datapoint_collection}")
-            print(f"==>> sigma_inv_collection: {sigma_inv_collection}")
-            print(f"==>> μ_mean_collection: {μ_mean_collection}")
-            print()
+        # if D < 0:
+        #     print()
+        #     print(f"==>> D_collection: {D_collection}")
+        #     print(f"==>> z_probs_collection: {z_probs_collection}")
+        #     print(f"==>> norm_datapoint_collection: {norm_datapoint_collection}")
+        #     print(f"==>> sigma_inv_collection: {sigma_inv_collection}")
+        #     print(f"==>> μ_mean_collection: {μ_mean_collection}")
+        #     print()
             # assert False
 
         

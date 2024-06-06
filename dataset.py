@@ -389,7 +389,7 @@ if __name__ == '__main__':
                             label_file="./data_files/camera18_node_labels.csv",
                             emb_dim=4)
     
-    ds.dataset_vi(max_iter=1)
+    ds.dataset_vi(max_iter=30)
 
  
 
