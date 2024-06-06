@@ -100,10 +100,12 @@ class Dataset():
             # # Update the probs attribute for the current z_var
             # z_var.probs = new_probs
 
+        max_mean_norm = max([np.linalg.norm(mu) for mu in gmm.cluster_centres])
+
 
         for k in range(self.K):
             self.means_vars[k].prior_cov = mu_cov
-            self.means_vars[k].mean = gmm.cluster_centres[k]
+            self.means_vars[k].mean = gmm.cluster_centres[k] / max_mean_norm
             self.means_vars[k].cov =  mu_cov
 
             #print(f"mu_cov {k} det:", np.linalg.det(mu_cov))
@@ -111,7 +113,7 @@ class Dataset():
             self.sigma_star_vars[k].prior_scale = gmm.sigma_star_estimates[k] * (dof - self.d) #scale_mat
             self.sigma_star_vars[k].prior_dof = dof
 
-            self.sigma_star_vars[k].scale = gmm.sigma_star_estimates[k] * (dof - self.d)
+            self.sigma_star_vars[k].scale = gmm.sigma_star_estimates[k] * (dof - self.d) / (max_mean_norm**2)
             self.sigma_star_vars[k].dof = max(dof, self.d +3) # gmm.sigma_star_inits[k] * (dof - self.d)
 
             self.sigma_star_vars[k].nu = gmm.cluster_covs[k][-1,-1]
