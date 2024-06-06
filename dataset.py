@@ -24,7 +24,7 @@ from sklearn.metrics import adjusted_rand_score
 
 
 
-np.random.seed(42)
+np.random.seed(44)
 
 class Dataset():
     
@@ -83,6 +83,22 @@ class Dataset():
 
 
             z_var.probs = predicted_probs
+
+
+            # data = data.reshape(1, -1)
+
+            # # Get predicted probabilities from the fitted GMM model
+            # predicted_probs = self.gmm.fitted_gmm.predict_proba(data)[0]
+
+            # # Find the index of the maximum probability
+            # max_index = np.argmax(predicted_probs)
+
+            # # Set the maximum probability to 0.8
+            # new_probs = np.full(self.K, (1 - 0.8) / (self.K - 1))  # Distribute the remaining 0.2 equally among other groups
+            # new_probs[max_index] = 0.8
+
+            # # Update the probs attribute for the current z_var
+            # z_var.probs = new_probs
 
 
         for k in range(self.K):
@@ -154,10 +170,10 @@ class Dataset():
 
         # initialise phi variables
 
-        for k in range(self.K):
-            # count number of labels in group k
-            num_labels = sum([1 for lab in gmm.labels if lab == k])
-            self.phi_var.conc[k] = num_labels + self.phi_var.prior_conc[k]
+        # for k in range(self.K):
+        #     # count number of labels in group k
+        #     num_labels = sum([1 for lab in gmm.labels if lab == k])
+        #     self.phi_var.conc[k] = num_labels + self.phi_var.prior_conc[k]
         
 
 
