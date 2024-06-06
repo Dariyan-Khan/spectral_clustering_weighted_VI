@@ -23,20 +23,20 @@ class R():
             self.beta = beta
 
         self.d = d
-        # self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
-        # self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
-        # self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
+        self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+        self.first_moment = self.compute_Id(order=self.d+1) / self.norm_const
+        self.second_moment = self.compute_Id(order=self.d+2) / self.norm_const
 
         # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
         # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
         # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
-        self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-        self.log_first_moment = self.compute_log_I_d_ratio(order=self.d+1)
-        self.log_second_moment = self.compute_log_I_d_ratio(order=self.d+2)
+        # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+        # self.log_first_moment = self.compute_log_I_d_ratio(order=self.d+1)
+        # self.log_second_moment = self.compute_log_I_d_ratio(order=self.d+2)
 
-        self.first_moment = np.exp(self.log_first_moment)
-        self.second_moment = np.exp(self.log_second_moment)
+        # self.first_moment = np.exp(self.log_first_moment)
+        # self.second_moment = np.exp(self.log_second_moment)
 
         # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
         # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
@@ -198,7 +198,14 @@ class R():
 
 
     
-    def update_moments(self, norm_embd=None,embd=None ):
+    def update_moments(self, norm_embd=None,embd=None):
+        
+        # if self.beta < 0.5:
+        #     self.first_moment = 0
+        #     self.second_moment = 0
+        #     return 
+
+
         with warnings.catch_warnings():
             warnings.simplefilter("error", RuntimeWarning) 
 
@@ -271,21 +278,23 @@ class R():
         C = np.reshape(C, -1)
         D = np.reshape(D, -1)
 
-        if D < 0:
-            print()
-            print(f"==>> D_collection: {D_collection}")
-            print(f"==>> z_probs_collection: {z_probs_collection}")
-            print(f"==>> norm_datapoint_collection: {norm_datapoint_collection}")
-            print(f"==>> sigma_inv_collection: {sigma_inv_collection}")
-            print(f"==>> μ_mean_collection: {μ_mean_collection}")
-            print()
+        # if D < 0:
+        #     print()
+        #     print(f"==>> D_collection: {D_collection}")
+        #     print(f"==>> z_probs_collection: {z_probs_collection}")
+        #     print(f"==>> norm_datapoint_collection: {norm_datapoint_collection}")
+        #     print(f"==>> sigma_inv_collection: {sigma_inv_collection}")
+        #     print(f"==>> μ_mean_collection: {μ_mean_collection}")
+        #     print()
             # assert False
 
         
         self.alpha = C / 2
         self.beta = D / C
 
-        self.alpha = min(np.array([20.0]), self.alpha)
+        self.alpha = min(np.array([100.0]), self.alpha)
+
+        #self.alpha = min(np.array([20.0]), self.alpha)
 
         self.update_moments(norm_datapoint, datapoint )
 

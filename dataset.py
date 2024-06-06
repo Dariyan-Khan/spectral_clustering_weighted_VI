@@ -146,9 +146,10 @@ class Dataset():
             r_var.alpha = C / 2
             r_var.beta = D / C
 
+            r_var.alpha = min(r_var.alpha, np.array([[100.0]]))
+
             # print(f"r_var.alpha: {r_var.alpha}")
             # assert False
-            r_var.alpha = min(np.array([[20.0]]), r_var.alpha)
 
             r_var.update_moments()
 
@@ -387,9 +388,9 @@ if __name__ == '__main__':
 
     ds = Dataset_From_Files(emb_file="./data_files/camera18_embedding.csv",
                             label_file="./data_files/camera18_node_labels.csv",
-                            emb_dim=4)
+                            emb_dim=3)
     
-    ds.dataset_vi(max_iter=1)
+    ds.dataset_vi(max_iter=10)
 
  
 
