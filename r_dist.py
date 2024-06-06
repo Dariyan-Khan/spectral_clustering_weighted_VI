@@ -234,6 +234,11 @@ class R():
 
         C = 0
         D = 0
+        D_collection = []
+        z_probs_collection = []
+        norm_datapoint_collection = []
+        sigma_inv_collection = []
+        μ_mean_collection = []
 
         norm_datapoint = norm_datapoint.reshape(-1, 1)
         for k in range (0, len(z_i.probs)):
@@ -251,12 +256,30 @@ class R():
 
             C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
 
+            
             D_value = z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+
+            D_collection.append(z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean))
+            z_probs_collection.append(z_i.probs[k])
+            norm_datapoint_collection.append(norm_datapoint)
+            sigma_inv_collection.append(sigma_inv)
+            μ_mean_collection.append(μ.mean)
+
             D_value = D_value.reshape(-1)
             D += D_value
         
         C = np.reshape(C, -1)
         D = np.reshape(D, -1)
+
+        if D < 0:
+            print()
+            print(f"==>> D_collection: {D_collection}")
+            print(f"==>> z_probs_collection: {z_probs_collection}")
+            print(f"==>> norm_datapoint_collection: {norm_datapoint_collection}")
+            print(f"==>> sigma_inv_collection: {sigma_inv_collection}")
+            print(f"==>> μ_mean_collection: {μ_mean_collection}")
+            print()
+            # assert False
 
         
         self.alpha = C / 2

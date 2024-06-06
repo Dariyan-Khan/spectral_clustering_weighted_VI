@@ -1,5 +1,5 @@
 import numpy as np
-from copy import copy
+from copy import copy, deepcopy
 
 class Sigma_Star():
 
@@ -112,6 +112,9 @@ class Sigma_Star():
 
         if self.scale.size == 1:
             scale_mat = self.scale.reshape(1, 1)
+        
+        else:
+            scale_mat = deepcopy(self.scale)
 
         return (c_1+c_2) * (scale_mat @ scale_mat) + c_2 * np.trace(scale_mat) * scale_mat
 

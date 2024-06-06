@@ -3,7 +3,7 @@ import pandas as pd
 from scipy.linalg import orthogonal_procrustes
 
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.metrics import silhouette_score, adjusted_rand_score
 
 from tqdm import tqdm
 
@@ -18,6 +18,11 @@ from phi_dist import Phi
 from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta
+
+from sklearn.metrics import adjusted_rand_score
+
+
+
 
 np.random.seed(42)
 
@@ -115,8 +120,11 @@ class Dataset():
         for i, (r_var, z_var) in enumerate(zip(self.r_vars, self.z_vars)):
             C=0
             D=0
+
             norm_datapoint = self.normed_embds[i]
             norm_datapoint = norm_datapoint.reshape(-1, 1)
+
+            D_collection = []
 
             
 
@@ -131,17 +139,19 @@ class Dataset():
 
                 C += z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
                 D += z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+                D_collection.append(z_var.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean))
 
+            
 
             r_var.alpha = C / 2
             r_var.beta = D / C
 
             # print(f"r_var.alpha: {r_var.alpha}")
             # assert False
-            r_var.alpha = min(np.array([[100]]), r_var.alpha)
+            r_var.alpha = min(np.array([[20.0]]), r_var.alpha)
 
             r_var.update_moments()
-        
+
         # initialise phi variables
 
         for k in range(self.K):
@@ -184,25 +194,7 @@ class Dataset():
     
     def print_progress(self, epoch, num_els=10):
 
-        num_elements = len(self.z_vars)
-        num_correct = 0
-        if self.synthetic:
-            for (z_var, true_label) in zip(self.z_vars, self.true_labels):
-                
-                if not self.reversed_labels:
-                    num_correct += z_var.probs[true_label] > 0.5
-                else:
-                    num_correct += z_var.probs[true_label] < 0.5
-                # if i % 2 == 0:
-                #     num_correct += self.z_vars[i].probs[0] > self.z_vars[i].probs[1]
-                # else:
-                #     num_correct += self.z_vars[i].probs[1] > self.z_vars[i].probs[0]
-        
-        fraction_correct = num_correct / num_elements
-
-        real_num_in_first_group = sum([1-lab for lab in self.true_labels])
-        real_num_in_second_group = sum(self.true_labels)
-
+        predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
 
         print(f"""Iteration {epoch} results:
                   
@@ -242,12 +234,7 @@ class Dataset():
                 _____________________________________________________________________
 
                     First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
-                    average number in first group: {sum([x.probs[0] for x in self.z_vars])}
-                    average number in second group: {sum([x.probs[1] for x in self.z_vars])}
-                    fraction correct: {fraction_correct if self.synthetic else "N/A"}
-                    true_labels: {self.true_labels[:num_els] if self.synthetic else "N/A"}
-                    real_num_in_first_group: {real_num_in_first_group}
-                    real_num_in_second_group: {real_num_in_second_group}
+                    Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
 
                 _____________________________________________________________________
                     
@@ -337,6 +324,9 @@ class Dataset_From_Files(Dataset):
     
     def print_progress(self, epoch, num_els=10):
 
+        predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
+
+
         print(f"Iteration {epoch} results:\n")
 
         # Loop through each group to display means and covariance matrices
@@ -372,6 +362,7 @@ class Dataset_From_Files(Dataset):
 
         # Display z probs
         print(f"First {num_els} z probs: {[x.probs for x in self.z_vars[:num_els]]}\n")
+        print(f"Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}")
         print()
 
         print("_____________________________________________________________________")
@@ -396,9 +387,9 @@ if __name__ == '__main__':
 
     ds = Dataset_From_Files(emb_file="./data_files/camera18_embedding.csv",
                             label_file="./data_files/camera18_node_labels.csv",
-                            emb_dim=3)
+                            emb_dim=4)
     
-    ds.dataset_vi(max_iter=10)
+    ds.dataset_vi(max_iter=1)
 
  
 
