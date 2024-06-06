@@ -262,7 +262,7 @@ class R():
         self.alpha = C / 2
         self.beta = D / C
 
-        self.alpha = min(np.array([100.0]), self.alpha)
+        self.alpha = min(np.array([20.0]), self.alpha)
 
         self.update_moments(norm_datapoint, datapoint )
 
