@@ -4,6 +4,7 @@ from sigma_inv import sigma_inv_approx, jensen_approx
 from scipy.special import logsumexp
 from scipy.optimize import minimize_scalar
 from copy import deepcopy
+import warnings
 
 class R():
 
@@ -22,13 +23,17 @@ class R():
             self.beta = beta
 
         self.d = d
-        self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
-        self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
-        self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
+        # self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+        # self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
+        # self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
 
         # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
         # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
         # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+
+        self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+        self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+        self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
         self.pdf = lambda x: ((x**(self.d)) * np.exp(-self.alpha * (x - self.beta)**2)) /  self.norm_const
 
@@ -56,15 +61,49 @@ class R():
         # The current variable now holds the value of I_d
         return current
     
+
+    def stable_log_diff_exp(self, A, B):
+        """
+        Compute log(exp(A) - exp(B)) in a numerically stable manner.
+        Assumes A >= B.
+
+        This is useful in cases where self.β is negative
+        """
+        if A < B:
+            # raise ValueError("Function assumes that A >= B for stability.")
+            A, B = B, A
+        
+        # Handling the case where exp(B - A) could be numerically unstable
+        diff = B - A
+        if diff < -np.log(np.finfo(float).max):
+            # exp(B - A) is effectively zero
+            return A
+        else:
+            return A + np.log(1 - np.exp(diff))
+
+
+    
     def compute_log_Id(self, order):
         # Compute log I_0 and log I_1
 
-        # I_0 = np.sqrt(np.pi / self.alpha) * norm.cdf(self.beta * np.sqrt(2 * self.alpha))
-        # I_1 = self.beta * I_0 + np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)
-        eps = 1e-4
-
         log_I_0 = 0.5 * np.log(np.pi / self.alpha) + norm.logcdf(self.beta * np.sqrt(2 * self.alpha))
-        log_I_1 =  np.log(self.beta * np.exp(log_I_0) + (np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)) + eps)  #np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
+
+        if self.beta>=0:
+
+            log_beta = np.log(self.beta)
+            log_factor = -np.log(2 * self.alpha) - self.alpha * self.beta**2
+
+            # Combine using logsumexp for numerical stability
+            log_I_1 = logsumexp([log_beta + log_I_0, log_factor])
+        
+        elif self.beta<0:
+            large_log_term = -np.log(2 * self.alpha) - self.alpha * self.beta**2
+            small_log_term = np.log(np.abs(self.beta)) + log_I_0
+            log_I_1 = self.stable_log_diff_exp(large_log_term, small_log_term)
+
+
+
+        #log_I_1 =  np.log(self.beta * np.exp(log_I_0) + (np.exp(-self.alpha * self.beta**2) / (2 * self.alpha)) + eps)  #np.log(self.beta) + log_I_0 + np.log1p(np.exp(-self.alpha * self.beta**2 - np.log(2 * self.alpha) - log_I_0))
 
         # If order is 0 or 1, return log I_0 or log I_1 directly
         if order == 0:
@@ -77,33 +116,50 @@ class R():
         log_current = deepcopy(log_I_1)
 
         # Recursively compute log I_d using only the last two values
+
         for i in range(2, order + 1):
-            #log_term1 = np.log(self.beta * np.exp(log_current))
-            # log_term2 = log_previous + np.log((i - 1) / (2 * self.alpha) + eps)
-            # # log_next_value = logsumexp([log_term1, log_term2])
-            # new_inner_log = self.beta * np.exp(log_current) + np.exp(log_term2) + eps
 
-            # if new_inner_log<0:
-            #     return NotImplementedError
-
-            #log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_term2) + eps)
-            print(f"inner log: {self.beta * np.exp(log_current) + np.exp(log_previous) * (i - 1) / (2 * self.alpha) + eps}")
-            log_next_value = np.log(self.beta * np.exp(log_current) + np.exp(log_previous) * (i - 1) / (2 * self.alpha) + eps)
+            if self.beta>=0:
+                first_term = np.log(self.beta) + log_current
+                second_term = log_previous + np.log(i-1) - (np.log(2) + np.log(self.alpha))
+                log_next_value = logsumexp([first_term, second_term])
+            
+            elif self.beta<0:
+                large_log_term = log_previous + np.log(i-1) - (np.log(2) + np.log(self.alpha))
+                small_log_term = np.log(np.abs(self.beta)) + log_current
+                # print(f"==>> large_log_term: {large_log_term}")
+                # print(f"==>> small_log_term: {small_log_term}")
+                log_next_value = self.stable_log_diff_exp(large_log_term, small_log_term)
 
             log_previous, log_current = log_current, log_next_value
 
         # The log_current variable now holds the value of log I_d
         return log_current
     
+    def compute_log_first_order_ratio(self):
+        log_norm_const = self.compute_log_Id(order=self.d)
+
+
+    
     def update_moments(self, norm_embd=None):
-        try:
-            self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
-            self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
-            self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
-        
-        except Exception:
-            print(f"==>> norm_embd: {norm_embd}")
-            assert False
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning) 
+
+            try:
+                # self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
+                # self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
+                # self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
+
+                self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+                self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+                self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+
+
+            
+            except Exception:
+                print(f"==>> self.compute_Id(order=self.d+2): {self.compute_Id(order=self.d+2)}")
+                print(f"==>> norm_embd: {norm_embd}")
+                assert False
      
     
     def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, real_cov=None):
@@ -160,7 +216,6 @@ class R():
 
 
 if __name__ == "__main__":
-    r_dist = R(alpha=4.0, beta=5.8, d=3)
-    # print(r_dist.compute_Id(0))
-    # print(np.exp(r_dist.compute_log_Id(0)))
-    print(r_dist.MLE())
+    r_dist = R(alpha=2.0, beta=-0.113712833, d=4)
+    print(r_dist.compute_Id(6))
+    print(np.exp(r_dist.compute_log_Id(6)))
