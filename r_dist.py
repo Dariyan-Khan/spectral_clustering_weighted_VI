@@ -32,8 +32,14 @@ class R():
         # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
         self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-        self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-        self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+        self.log_first_moment = self.compute_log_I_d_ratio(order=self.d+1)
+        self.log_second_moment = self.compute_log_I_d_ratio(order=self.d+2)
+
+        self.first_moment = np.exp(self.log_first_moment)
+        self.second_moment = np.exp(self.log_second_moment)
+
+        # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+        # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
         self.pdf = lambda x: ((x**(self.d)) * np.exp(-self.alpha * (x - self.beta)**2)) /  self.norm_const
 
@@ -70,7 +76,9 @@ class R():
         This is useful in cases where self.β is negative
         """
         if A < B:
-            # raise ValueError("Function assumes that A >= B for stability.")
+            print(f"==>> A: {A}")
+            print(f"==>> B: {B}")
+            raise ValueError("Function assumes that A >= B for stability.")
             A, B = B, A
         
         # Handling the case where exp(B - A) could be numerically unstable
@@ -136,8 +144,57 @@ class R():
         # The log_current variable now holds the value of log I_d
         return log_current
     
-    def compute_log_first_order_ratio(self):
+    
+    def compute_log_I_d_ratio(self, order):
         log_norm_const = self.compute_log_Id(order=self.d)
+
+        log_I_0_ratio = 0.5 * np.log(np.pi / self.alpha) + norm.logcdf(self.beta * np.sqrt(2 * self.alpha)) - log_norm_const
+
+        if self.beta>=0:
+
+            log_beta = np.log(self.beta)
+            log_factor = -np.log(2 * self.alpha) - self.alpha * self.beta**2 - log_norm_const
+
+            # Combine using logsumexp for numerical stability
+            log_I_1_ratio = logsumexp([log_beta + log_I_0_ratio, log_factor])
+        
+        elif self.beta<0:
+            large_log_term = -np.log(2 * self.alpha) - self.alpha * self.beta**2 - log_norm_const
+            small_log_term = np.log(np.abs(self.beta)) + log_I_0_ratio
+            log_I_1_ratio = self.stable_log_diff_exp(large_log_term, small_log_term)
+        
+
+
+        # If order is 0 or 1, return log I_0 or log I_1 directly
+        if order == 0:
+            return log_I_0_ratio
+        if order == 1:
+            return log_I_1_ratio
+
+        # Initialize previous two values for the recursion
+        log_ratio_previous = deepcopy(log_I_0_ratio)
+        log_ratio_current = deepcopy(log_I_1_ratio)
+
+        # Recursively compute log I_d using only the last two values
+
+        for i in range(2, order + 1):
+
+            if self.beta>=0:
+                first_term = np.log(self.beta) + log_ratio_current
+                second_term = log_ratio_previous + np.log(i-1) - (np.log(2) + np.log(self.alpha))
+                log_ratio_next_value = logsumexp([first_term, second_term])
+            
+            elif self.beta<0:
+                large_log_term = log_ratio_previous + np.log(i-1) - (np.log(2) + np.log(self.alpha))
+                small_log_term = np.log(np.abs(self.beta)) + log_ratio_current
+                # print(f"==>> large_log_term: {large_log_term}")
+                # print(f"==>> small_log_term: {small_log_term}")
+                log_ratio_next_value = self.stable_log_diff_exp(large_log_term, small_log_term)
+
+            log_ratio_previous, log_ratio_current = log_ratio_current, log_ratio_next_value
+
+        # The log_current variable now holds the value of log I_d
+        return log_ratio_current
 
 
     
@@ -150,14 +207,23 @@ class R():
                 # self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
                 # self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
 
+                # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
+                # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
+                # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+
                 self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
-                self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
-                self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
+                self.log_first_moment = self.compute_log_I_d_ratio(order=self.d+1)
+                self.log_second_moment = self.compute_log_I_d_ratio(order=self.d+2)
+
+                self.first_moment = np.exp(self.log_first_moment)
+                self.second_moment = np.exp(self.log_second_moment)
 
 
             
             except Exception:
-                print(f"==>> self.compute_Id(order=self.d+2): {self.compute_Id(order=self.d+2)}")
+                print(f"==>> alpha: {self.alpha}")
+                print(f"==>> beta: {self.beta}")
+                print(f"==>> log_norm_const: {self.log_norm_const}")
                 print(f"==>> norm_embd: {norm_embd}")
                 assert False
      
@@ -216,6 +282,14 @@ class R():
 
 
 if __name__ == "__main__":
-    r_dist = R(alpha=2.0, beta=-0.113712833, d=4)
-    print(r_dist.compute_Id(6))
-    print(np.exp(r_dist.compute_log_Id(6)))
+    d=5
+    r_dist = R(alpha=5.5, beta=-5.113712833, d=d)
+    first_moment = np.exp(r_dist.compute_log_Id(d+1) - r_dist.compute_log_Id(d))
+    second_moment = np.exp(r_dist.compute_log_Id(d+2) - r_dist.compute_log_Id(d))
+    print(f"==>> first_moment: {first_moment}")
+    print(f"==>> second_moment: {second_moment}")
+
+    first_moment_ratio = np.exp(r_dist.compute_log_I_d_ratio(d+1))
+    second_moment_ratio = np.exp(r_dist.compute_log_I_d_ratio(d+2))
+    print(f"==>> first_moment_ratio: {first_moment_ratio}")
+    print(f"==>> second_moment_ratio: {second_moment_ratio}")
