@@ -1,5 +1,6 @@
 import numpy as np
 from copy import copy, deepcopy
+import warnings
 
 
 class Gamma():
@@ -25,13 +26,21 @@ class Gamma():
         
         self.nu = None
     
+    def is_positive_semi_definite(self, A):
+        try:
+            np.linalg.cholesky(A)
+            return True
+        except np.linalg.LinAlgError:
+            return False
+    
     def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints, real_cov=None):
 
         mean_vec = np.zeros(self.dim)
         cov_mat = np.zeros((self.dim, self.dim))
-        cov_mat_inner = np.zeros((self.dim, self.dim))
+        cov_mat_inner = 0
         
         mean_vec = np.expand_dims(mean_vec, axis=1)
+
 
         μ_k_mean_last_term = np.array([μ_k.cov[self.d-1, i] + μ_k.mean[self.d-1]*μ_k.mean[i] for i in range(self.dim)])
         # print(f"==>> μ_k_mean_last_term: {μ_k_mean_last_term}")
@@ -46,44 +55,81 @@ class Gamma():
                 μ_k.cov[self.d-1, self.d-1]
             )
 
+            # if cov_mat_inner.size > 1:
+            #     print()
+            #     print()
+            #     print(f"==>> z.probs[self.k]: {z.probs[self.k]}")
+            #     print(f"==>> r_vi_list[i].second_moment: {r_vi_list[i].second_moment}")
+            #     print(f"==>> data[self.d-1]: {data[self.d-1]}")
+            #     print(f"==>> μ_k.mean[self.d-1]: {μ_k.mean[self.d-1]}")
+            #     print(f"==>> μ_k.cov[self.d-1, self.d-1]: {μ_k.cov[self.d-1, self.d-1]}")
+            #     print()
+            #     print()
+            #     assert False
+
+                
+
             data = data.reshape(-1, 1)
 
+            try:
+                data_vec = np.reshape(data[self.d-1], (-1, 1))
+                μ_mean_vec = np.reshape(μ_k.mean[self.d-1], (-1, 1))
+                μ_k_mean_last_term = np.reshape(μ_k_mean_last_term, (-1, 1))
+                
 
-            mean_vec += z.probs[self.k] * (
-                r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
-                r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
-                r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \
-                μ_k_mean_last_term
-                # μ_k.mean[:self.d-1] * μ_k.mean[self.d-1]
-            )
+                mean_vec += z.probs[self.k] * (
+                    r_vi_list[i].second_moment * data_vec * data_vec - \
+                    r_vi_list[i].first_moment * data_vec * μ_mean_vec - \
+                    r_vi_list[i].first_moment * data_vec * μ_mean_vec + \
+                    μ_k_mean_last_term
+                )
+            
+            except ValueError:
+                print(f"==>> r_vi_list[i].second_moment: {r_vi_list[i].second_moment}")
+                print(f"==>> mean_vec.shape: {mean_vec.shape}")
+                print(f"==>> data[self.d-1].shape: {data[self.d-1].shape}")
+                print(f"==>> μ_k.mean[:self.d-1].shape: {μ_k.mean[:self.d-1].shape}")
+                print(f"==>> μ_k_mean_last_term.shape: {μ_k_mean_last_term.shape}")
+                assert False
 
-            # print(f"==>> mean_vec: {mean_vec}")
 
-        # mean_vec = np.expand_dims(mean_vec, axis=1)
 
         if sigma_star_k.scale.size == 1:
             scale_mat = copy(np.array([sigma_star_k.scale]))
         else:
             scale_mat = copy(sigma_star_k.scale)
 
-        cov_mat = (1/self.nu) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), cov_mat_inner)
+        # print(f"==>> cov_mat_inner: {cov_mat_inner}")
+
+        cov_mat = (1/self.nu) * sigma_star_k.dof * np.linalg.inv(scale_mat) * cov_mat_inner
+
+        # print(f"==>> self.is_positive_semi_definite(scale_mat): {self.is_positive_semi_definite(scale_mat)}")
+
+        inter_1_cov_mat = deepcopy(cov_mat)
+
+        # print(f"==>> self.is_positive_semi_definite(inter_1_cov_mat): {self.is_positive_semi_definite(inter_1_cov_mat)}")
 
        # print(f"==>> cov_mat: {cov_mat}")
 
         cov_mat += np.linalg.inv(self.prior_cov)
-        #print(f"==>> cov_mat: {cov_mat}")
+
+        # Something goes wrong here, as we are no longer positive semi definite
+
+        inter_2_cov_mat = deepcopy(cov_mat)
+
+        # print(f"==>> self.is_positive_semi_definite(inter_2_cov_mat): {self.is_positive_semi_definite(inter_2_cov_mat)}")
 
 
-        # print(np.linalg.det(cov_mat), "cov mat det")
 
         self.cov = np.linalg.inv(cov_mat)
 
+        inter_3_cov_mat = deepcopy(self.cov)
+
+
         mean_vec = (1/np.sqrt(self.nu)) * sigma_star_k.dof * np.matmul(np.linalg.inv(scale_mat), mean_vec)
 
-        # print(f"==>> mean_vec: {mean_vec}")
 
         self.mean = np.matmul(self.cov, mean_vec)
-        # self.mean = self.mean.reshape(-1,1)
 
         self.outer_product = self.outer_prod()
 
@@ -93,9 +139,25 @@ class Gamma():
         else:
             std_cov = deepcopy(self.cov)
 
-        std_devs = np.sqrt(np.diag(std_cov))
-        
-        self.corr = self.cov / np.outer(std_devs, std_devs)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning) 
+
+            try:
+                std_devs = np.sqrt(np.diag(std_cov))
+                
+                self.corr = self.cov / np.outer(std_devs, std_devs)
+            
+            except Exception:
+                print(f"==>> std_cov: {std_cov}")
+                print(f"==>> np.diag(std_cov): {np.diag(std_cov)}")
+
+                print(f"inter_1_cov_mat: {inter_1_cov_mat}")
+                print(f"inter_2_cov_mat: {inter_2_cov_mat}")
+                print(f"inter_3_cov_mat: {inter_3_cov_mat}")
+
+                print(f"==>> μ_k cov: {μ_k.cov}")
+                assert False
     
 
 
