@@ -198,7 +198,7 @@ class R():
 
 
     
-    def update_moments(self, norm_embd=None):
+    def update_moments(self, norm_embd=None,embd=None ):
         with warnings.catch_warnings():
             warnings.simplefilter("error", RuntimeWarning) 
 
@@ -225,10 +225,12 @@ class R():
                 print(f"==>> beta: {self.beta}")
                 print(f"==>> log_norm_const: {self.log_norm_const}")
                 print(f"==>> norm_embd: {norm_embd}")
+                print(f"==>> embedding: {embd}")
+                # print(f"==>> group: {np.argmax(z_var.probs)}")
                 assert False
      
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, real_cov=None):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, datapoint, real_cov=None):
 
         C = 0
         D = 0
@@ -257,10 +259,12 @@ class R():
         D = np.reshape(D, -1)
 
         
-        self.alpha = C/2
+        self.alpha = C / 2
         self.beta = D / C
 
-        self.update_moments(norm_datapoint)
+        self.alpha = min(np.array([100.0]), self.alpha)
+
+        self.update_moments(norm_datapoint, datapoint )
 
 
     def function_to_maximize(self, r):
