@@ -17,7 +17,9 @@ from phi_dist import Phi
 from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta
+import matplotlib.pyplot as plt
 
+np.random.seed(42)
 class Dataset():
     
     def __init__(self, adj_mat, emb_dim, K=None, synthetic=False):
@@ -397,7 +399,7 @@ if __name__ == '__main__':
     μ_1 = np.array([0.75, 0.25])
     μ_2 = np.array([0.25, 0.75])
 
-    α = 7
+    α = 2
     β = 2
     prior = lambda : beta.rvs(α, β)
 
@@ -413,7 +415,9 @@ if __name__ == '__main__':
     #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=20) 
+    ds.dataset_vi(max_iter=10) 
+
+    
 
     ##true_labels = ds.true_labels
     # max_probs = [np.argmax(z.probs) for z in ds.z_vars]
@@ -427,6 +431,137 @@ if __name__ == '__main__':
     # print("True Labels:", true_labels[:10])
 
     # print("Max Probs:", max_probs[:100])
+
+ 
+
+# Example Data Setup (Replace with your actual data)
+# ds.embds = np.random.rand(100, 2)  # Example embeddings
+# ds.true_labels = np.random.randint(0, 2, size=100)  # Example labels
+
+
+# Example Data Setup (Replace with your actual data)
+# ds.embds = np.random.rand(100, 2)  # Example embeddings
+# ds.true_labels = np.random.randint(0, 2, size=100)  # Example labels
+
+# Separate the embeddings based on labels
+
+
+
+# Code for the the spectral embeddings
+
+
+    # plt.rc('font', size=8)  # Default text sizes
+    # plt.rc('axes', titlesize=8)  # Axes title font size
+    # plt.rc('legend', fontsize=8)  # Legend font size
+    # plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    # plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    # plt.rcParams['mathtext.fontset'] = 'stix'
+    # plt.rcParams['font.family'] = 'STIXGeneral'
+
+    # group1 = ds.normed_embds[ds.true_labels == 0]
+    # group2 = ds.normed_embds[ds.true_labels == 1]
+
+    # # Create the plot with specific figure size
+    # fig, ax = plt.subplots(figsize=(8.4, 6))
+
+    # # Plot the data with updated group labels
+    # ax.scatter(group1[:, 0], group1[:, 1], c='red', marker='o', label='Group 1')
+    # ax.scatter(group2[:, 0], group2[:, 1], c='blue', marker='^', label='Group 2')
+
+    # # Define mu_1 and mu_2
+    # mu1 = [0.75, 0.25]
+    # mu2 = [0.25, 0.75]
+
+    # # Add lines through mu_1 and mu_2 with corrected slopes
+    # ax.axline(mu1, slope=1/3, color='green', linestyle='--', label='$\\mu_1=(0.75,0.25)$')
+    # ax.axline(mu2, slope=3, color='purple', linestyle='--', label='$\\mu_2=(0.25,0.75)$')
+
+    # # Set axis labels and limits
+    # ax.set_xlabel('X', fontsize=10)
+    # ax.set_ylabel('Y', fontsize=10)
+    # ax.set_xlim(-0.2, 1.2)  # Adjusted to ensure mu lines are properly visible
+    # ax.set_ylim(-0.2, 1.2)
+
+    # # Add grid for better visibility
+    # ax.grid(True)
+
+    # # Add legend
+    # ax.legend(fontsize=8)
+
+    # # Adjust layout to prevent clipping
+    # plt.tight_layout()
+
+    # #plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/synthetic_dataset/projected_spectral_embeddings.pdf', bbox_inches='tight')
+
+    # # Show the plot
+    # plt.show()
+
+
+    # Plot the r_i * x_i values for the synthetic dataset
+
+    # Update font settings for nicer appearance
+    # plt.rc('font', size=8)  # Adjusts the default text sizes
+    # plt.rc('axes', titlesize=8)  # Adjusts the axes title font size
+    # plt.rc('legend', fontsize=8)  # Adjusts the legend font size
+    # plt.rc('xtick', labelsize=10)  # Adjusts the x-axis tick label font size
+    # plt.rc('ytick', labelsize=10)  # Adjusts the y-axis tick label font size
+    # plt.rcParams['mathtext.fontset'] = 'stix'
+    # plt.rcParams['font.family'] = 'STIXGeneral'
+
+    # # Initialize lists to store data points for each group
+    # data_points_group_1 = []
+    # data_points_group_2 = []
+
+    # # Assume ds.normed_embds, ds.r_vars, ds.true_labels are defined and properly formatted
+    # for norm_data, r_var, label in zip(ds.normed_embds, ds.r_vars, ds.true_labels):
+    #     if label == 0:
+    #         data_points_group_1.append(norm_data * r_var.first_moment)
+    #     else:
+    #         data_points_group_2.append(norm_data * r_var.first_moment)
+
+    # # Convert lists to numpy arrays for easier handling
+    # data_points_group_1 = np.array(data_points_group_1)
+    # data_points_group_2 = np.array(data_points_group_2)
+
+    # # Create the plot with specific figure size
+    # plt.figure(figsize=(8.4, 6))
+
+    # # Plot the data points for each group
+    # plt.scatter(data_points_group_1[:, 0], data_points_group_1[:, 1], c='red', marker='o', label='Group 1')
+    # plt.scatter(data_points_group_2[:, 0], data_points_group_2[:, 1], c='blue', marker='^', label='Group 2')
+
+    # # Define mu_1 and mu_2
+    # mu1 = [0.75, 0.25]
+    # mu2 = [0.25, 0.75]
+
+    # # Add lines through mu_1 and mu_2 with corrected slopes
+    # plt.axline(mu1, slope=1/3, color='green', linestyle='--', label='$\mu_1=(0.75,0.25)$')
+    # plt.axline(mu2, slope=3, color='purple', linestyle='--', label='Line through $\mu_2=(0.25, 0.75)$')
+
+    
+
+    # # Set axis labels and limits
+    # plt.xlabel('X')
+    # plt.ylabel('Y')
+    # plt.xlim(-0.2, 1.2)  # Adjusted the upper limit to 1.5 for better visibility of lines
+    # plt.ylim(-0.2, 1.2)
+
+    # # Add grid for better visibility
+    # plt.grid(True)
+
+    # # Add legend
+    # plt.legend()
+
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/synthetic_dataset/r_ix_i_plot.pdf', bbox_inches='tight')
+
+    # # Show the plot
+    # plt.show()
+
+    
+
+        
+
+
 
 
 
