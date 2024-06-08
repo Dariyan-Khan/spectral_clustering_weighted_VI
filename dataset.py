@@ -17,7 +17,7 @@ from phi_dist import Phi
 
 from dataset_initialisation import GMM_Init
 
-from scipy.stats import beta
+from scipy.stats import beta, entropy
 
 from sklearn.metrics import adjusted_rand_score
 
@@ -211,6 +211,67 @@ class Dataset():
     def print_progress(self, epoch, num_els=10):
 
         predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
+        entropies = [entropy(z_i.probs) for z_i in self.z_vars]
+
+        # Calculate average entropy
+        average_entropy = sum(entropies) / len(entropies)
+
+        # print(f"""Iteration {epoch} results:
+                  
+        #             μ_0_mean: {self.means_vars[0].mean}
+        #             μ_0_cov: {self.means_vars[0].cov}
+
+        #             μ_1_mean: {self.means_vars[1].mean}
+        #             μ_1_cov: {self.means_vars[1].cov}
+
+
+        #          _____________________________________________________________________
+
+        #             sigma_0_scale: {self.sigma_star_vars[0].scale}
+        #             sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
+        #             sigma_0_dof: {self.sigma_star_vars[0].dof}
+        #             sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
+        #             sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
+        #             sigma_0_mode: {self.sigma_star_vars[0].mode()}
+
+
+        #             sigma_1_scale: {self.sigma_star_vars[1].scale}
+        #             sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
+        #             sigma_1_dof: {self.sigma_star_vars[1].dof}
+        #             sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
+        #             sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
+        #             sigma_1_mode: {self.sigma_star_vars[1].mode()}
+
+
+        #         _____________________________________________________________________
+
+        #             gamma_0_mean: {self.gamma_vars[0].mean}
+        #             gamma_0_cov: {self.gamma_vars[0].cov}
+
+        #             gamma_1_mean: {self.gamma_vars[1].mean}
+        #             gamma_1_cov: {self.gamma_vars[1].cov}
+
+        #         _____________________________________________________________________
+
+        #             First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
+        #             Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
+        #             Average Entropy: {average_entropy}
+
+        #         _____________________________________________________________________
+                    
+        #             r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
+        #             r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
+        #             r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
+        #             r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
+
+        #             true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
+
+        #          _____________________________________________________________________
+
+        #             phi_probs: {self.phi_var.conc}
+                  
+                  
+        #           """)
 
         print(f"""Iteration {epoch} results:
                   
@@ -224,19 +285,11 @@ class Dataset():
                  _____________________________________________________________________
 
                     sigma_0_scale: {self.sigma_star_vars[0].scale}
-                    sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
                     sigma_0_dof: {self.sigma_star_vars[0].dof}
-                    sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
-                    sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
-                    sigma_0_mode: {self.sigma_star_vars[0].mode()}
 
 
                     sigma_1_scale: {self.sigma_star_vars[1].scale}
-                    sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
                     sigma_1_dof: {self.sigma_star_vars[1].dof}
-                    sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
-                    sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
-                    sigma_1_mode: {self.sigma_star_vars[1].mode()}
 
 
                 _____________________________________________________________________
@@ -251,20 +304,9 @@ class Dataset():
 
                     First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
                     Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
+                    Average Entropy: {average_entropy}
 
                 _____________________________________________________________________
-                    
-                    r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
-                    r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
-                    r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
-                    r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
-
-                    true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
-
-                 _____________________________________________________________________
-
-                    phi_probs: {self.phi_var.conc}
-                  
                   
                   """)
         
@@ -340,63 +382,162 @@ class Dataset_From_Files(Dataset):
     
     def print_progress(self, epoch, num_els=10):
 
+        # predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
+
+
+        # print(f"Iteration {epoch} results:\n")
+
+        # # Loop through each group to display means and covariance matrices
+        # for k in range(self.K):
+        #     print(f"μ_{k}_mean: {self.means_vars[k].mean}")
+        #     print(f"μ_{k}_cov: {self.means_vars[k].cov}\n")
+        #     print()
+
+        # print("_____________________________________________________________________")
+        # print()
+
+        # # Loop through each group to display sigma variables
+        # for k in range(self.K):
+        #     print(f"sigma_{k}_scale: {self.sigma_star_vars[k].scale}")
+        #     print(f"sigma_{k}_prior_scale: {self.sigma_star_vars[k].prior_scale}")
+        #     print(f"sigma_{k}_dof: {self.sigma_star_vars[k].dof}")
+        #     print(f"sigma_{k}_prior_dof: {self.sigma_star_vars[k].prior_dof}")
+        #     print(f"sigma_{k}_first_moment: {self.sigma_star_vars[k].first_moment}")
+        #     print(f"sigma_{k}_mode: {self.sigma_star_vars[k].mode()}\n")
+        #     print()
+
+        # print("_____________________________________________________________________")
+        # print()
+
+        # # Loop through each group to display gamma variables
+        # for k in range(self.K):
+        #     print(f"gamma_{k}_mean: {self.gamma_vars[k].mean}")
+        #     print(f"gamma_{k}_cov: {self.gamma_vars[k].cov}\n")
+        #     print()
+
+        # print("_____________________________________________________________________")
+        # print()
+
+        # # Display z probs
+        # print(f"First {num_els} z probs: {[x.probs for x in self.z_vars[:num_els]]}\n")
+        # print(f"Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}")
+        # print()
+
+        # print("_____________________________________________________________________")
+        # print()
+
+        # # Display r vars
+        # print(f"r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}")
+        # print(f"r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}")
+        # print(f"r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}")
+        # print(f"r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}")
+        # print(f"true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}\n")
+        # print()
+
+        # print("_____________________________________________________________________")
+        # print()
+
+        # # Display phi probabilities
+        # print(f"phi_probs: {self.phi_var.conc}")
+
         predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
+        entropies = [entropy(z_i.probs) for z_i in self.z_vars]
+
+        # Calculate average entropy
+        average_entropy = sum(entropies) / len(entropies)
+
+        # print(f"""Iteration {epoch} results:
+                  
+        #             μ_0_mean: {self.means_vars[0].mean}
+        #             μ_0_cov: {self.means_vars[0].cov}
+
+        #             μ_1_mean: {self.means_vars[1].mean}
+        #             μ_1_cov: {self.means_vars[1].cov}
 
 
-        print(f"Iteration {epoch} results:\n")
+        #          _____________________________________________________________________
 
-        # Loop through each group to display means and covariance matrices
-        for k in range(self.K):
-            print(f"μ_{k}_mean: {self.means_vars[k].mean}")
-            print(f"μ_{k}_cov: {self.means_vars[k].cov}\n")
-            print()
+        #             sigma_0_scale: {self.sigma_star_vars[0].scale}
+        #             sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
+        #             sigma_0_dof: {self.sigma_star_vars[0].dof}
+        #             sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
+        #             sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
+        #             sigma_0_mode: {self.sigma_star_vars[0].mode()}
 
-        print("_____________________________________________________________________")
-        print()
 
-        # Loop through each group to display sigma variables
-        for k in range(self.K):
-            print(f"sigma_{k}_scale: {self.sigma_star_vars[k].scale}")
-            print(f"sigma_{k}_prior_scale: {self.sigma_star_vars[k].prior_scale}")
-            print(f"sigma_{k}_dof: {self.sigma_star_vars[k].dof}")
-            print(f"sigma_{k}_prior_dof: {self.sigma_star_vars[k].prior_dof}")
-            print(f"sigma_{k}_first_moment: {self.sigma_star_vars[k].first_moment}")
-            print(f"sigma_{k}_mode: {self.sigma_star_vars[k].mode()}\n")
-            print()
+        #             sigma_1_scale: {self.sigma_star_vars[1].scale}
+        #             sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
+        #             sigma_1_dof: {self.sigma_star_vars[1].dof}
+        #             sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
+        #             sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
+        #             sigma_1_mode: {self.sigma_star_vars[1].mode()}
 
-        print("_____________________________________________________________________")
-        print()
 
-        # Loop through each group to display gamma variables
-        for k in range(self.K):
-            print(f"gamma_{k}_mean: {self.gamma_vars[k].mean}")
-            print(f"gamma_{k}_cov: {self.gamma_vars[k].cov}\n")
-            print()
+        #         _____________________________________________________________________
 
-        print("_____________________________________________________________________")
-        print()
+        #             gamma_0_mean: {self.gamma_vars[0].mean}
+        #             gamma_0_cov: {self.gamma_vars[0].cov}
 
-        # Display z probs
-        print(f"First {num_els} z probs: {[x.probs for x in self.z_vars[:num_els]]}\n")
-        print(f"Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}")
-        print()
+        #             gamma_1_mean: {self.gamma_vars[1].mean}
+        #             gamma_1_cov: {self.gamma_vars[1].cov}
 
-        print("_____________________________________________________________________")
-        print()
+        #         _____________________________________________________________________
 
-        # Display r vars
-        print(f"r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}")
-        print(f"r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}")
-        print(f"r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}")
-        print(f"r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}")
-        print(f"true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}\n")
-        print()
+        #             First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
+        #             Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
+        #             Average Entropy: {average_entropy}
 
-        print("_____________________________________________________________________")
-        print()
+        #         _____________________________________________________________________
+                    
+        #             r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
+        #             r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
+        #             r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
+        #             r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
 
-        # Display phi probabilities
-        print(f"phi_probs: {self.phi_var.conc}")
+        #             true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
+
+        #          _____________________________________________________________________
+
+        #             phi_probs: {self.phi_var.conc}
+                  
+                  
+        #           """)
+
+        print(f"""Iteration {epoch} results:
+                  
+                    μ_0_mean: {self.means_vars[0].mean}
+                    μ_0_cov: {self.means_vars[0].cov}
+
+                    μ_1_mean: {self.means_vars[1].mean}
+                    μ_1_cov: {self.means_vars[1].cov}
+
+
+                 _____________________________________________________________________
+
+                    sigma_0_scale: {self.sigma_star_vars[0].scale}
+                    sigma_0_dof: {self.sigma_star_vars[0].dof}
+
+
+                    sigma_1_scale: {self.sigma_star_vars[1].scale}
+                    sigma_1_dof: {self.sigma_star_vars[1].dof}
+
+
+                _____________________________________________________________________
+
+                    gamma_0_mean: {self.gamma_vars[0].mean}
+                    gamma_0_cov: {self.gamma_vars[0].cov}
+
+                    gamma_1_mean: {self.gamma_vars[1].mean}
+                    gamma_1_cov: {self.gamma_vars[1].cov}
+
+                _____________________________________________________________________
+
+                    Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
+                    Average Entropy: {average_entropy}
+
+                _____________________________________________________________________
+                  
+                  """)
 
 
 if __name__ == '__main__':
@@ -405,7 +546,7 @@ if __name__ == '__main__':
                             label_file="./data_files/camera18_node_labels.csv",
                             emb_dim=4)
     
-    ds.dataset_vi(max_iter=30)
+    ds.dataset_vi(max_iter=19)
 
  
 
