@@ -16,7 +16,7 @@ from phi_dist import Phi
 
 from dataset_initialisation import GMM_Init
 
-from scipy.stats import beta
+from scipy.stats import beta, entropy
 import matplotlib.pyplot as plt
 
 np.random.seed(42)
@@ -233,6 +233,11 @@ class Dataset():
         real_num_in_first_group = sum([1-lab for lab in self.true_labels])
         real_num_in_second_group = sum(self.true_labels)
 
+        entropies = [entropy(z_i.probs) for z_i in self.z_vars]
+
+        # Calculate average entropy
+        average_entropy = sum(entropies) / len(entropies)
+
 
         print(f"""Iteration {epoch} results:
                   
@@ -270,14 +275,8 @@ class Dataset():
                     gamma_1_cov: {self.gamma_vars[1].cov}
 
                 _____________________________________________________________________
-
-                    First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
-                    average number in first group: {sum([x.probs[0] for x in self.z_vars])}
-                    average number in second group: {sum([x.probs[1] for x in self.z_vars])}
                     fraction correct: {fraction_correct if self.synthetic else "N/A"}
-                    true_labels: {self.true_labels[:num_els] if self.synthetic else "N/A"}
-                    real_num_in_first_group: {real_num_in_first_group}
-                    real_num_in_second_group: {real_num_in_second_group}
+                    average entropy: {average_entropy}
 
                 _____________________________________________________________________
                     
