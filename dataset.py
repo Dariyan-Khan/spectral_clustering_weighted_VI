@@ -20,6 +20,7 @@ from dataset_initialisation import GMM_Init
 from scipy.stats import beta, entropy
 
 from sklearn.metrics import adjusted_rand_score
+import matplotlib.pyplot as plt
 
 
 
@@ -169,11 +170,6 @@ class Dataset():
             r_var.update_moments()
 
         # initialise phi variables
-
-        # for k in range(self.K):
-        #     # count number of labels in group k
-        #     num_labels = sum([1 for lab in gmm.labels if lab == k])
-        #     self.phi_var.conc[k] = num_labels + self.phi_var.prior_conc[k]
         
 
 
@@ -215,63 +211,6 @@ class Dataset():
 
         # Calculate average entropy
         average_entropy = sum(entropies) / len(entropies)
-
-        # print(f"""Iteration {epoch} results:
-                  
-        #             μ_0_mean: {self.means_vars[0].mean}
-        #             μ_0_cov: {self.means_vars[0].cov}
-
-        #             μ_1_mean: {self.means_vars[1].mean}
-        #             μ_1_cov: {self.means_vars[1].cov}
-
-
-        #          _____________________________________________________________________
-
-        #             sigma_0_scale: {self.sigma_star_vars[0].scale}
-        #             sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
-        #             sigma_0_dof: {self.sigma_star_vars[0].dof}
-        #             sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
-        #             sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
-        #             sigma_0_mode: {self.sigma_star_vars[0].mode()}
-
-
-        #             sigma_1_scale: {self.sigma_star_vars[1].scale}
-        #             sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
-        #             sigma_1_dof: {self.sigma_star_vars[1].dof}
-        #             sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
-        #             sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
-        #             sigma_1_mode: {self.sigma_star_vars[1].mode()}
-
-
-        #         _____________________________________________________________________
-
-        #             gamma_0_mean: {self.gamma_vars[0].mean}
-        #             gamma_0_cov: {self.gamma_vars[0].cov}
-
-        #             gamma_1_mean: {self.gamma_vars[1].mean}
-        #             gamma_1_cov: {self.gamma_vars[1].cov}
-
-        #         _____________________________________________________________________
-
-        #             First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
-        #             Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
-        #             Average Entropy: {average_entropy}
-
-        #         _____________________________________________________________________
-                    
-        #             r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
-        #             r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
-        #             r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
-        #             r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
-
-        #             true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
-
-        #          _____________________________________________________________________
-
-        #             phi_probs: {self.phi_var.conc}
-                  
-                  
-        #           """)
 
         print(f"""Iteration {epoch} results:
                   
@@ -382,63 +321,6 @@ class Dataset_From_Files(Dataset):
     
     def print_progress(self, epoch, num_els=10):
 
-        # predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
-
-
-        # print(f"Iteration {epoch} results:\n")
-
-        # # Loop through each group to display means and covariance matrices
-        # for k in range(self.K):
-        #     print(f"μ_{k}_mean: {self.means_vars[k].mean}")
-        #     print(f"μ_{k}_cov: {self.means_vars[k].cov}\n")
-        #     print()
-
-        # print("_____________________________________________________________________")
-        # print()
-
-        # # Loop through each group to display sigma variables
-        # for k in range(self.K):
-        #     print(f"sigma_{k}_scale: {self.sigma_star_vars[k].scale}")
-        #     print(f"sigma_{k}_prior_scale: {self.sigma_star_vars[k].prior_scale}")
-        #     print(f"sigma_{k}_dof: {self.sigma_star_vars[k].dof}")
-        #     print(f"sigma_{k}_prior_dof: {self.sigma_star_vars[k].prior_dof}")
-        #     print(f"sigma_{k}_first_moment: {self.sigma_star_vars[k].first_moment}")
-        #     print(f"sigma_{k}_mode: {self.sigma_star_vars[k].mode()}\n")
-        #     print()
-
-        # print("_____________________________________________________________________")
-        # print()
-
-        # # Loop through each group to display gamma variables
-        # for k in range(self.K):
-        #     print(f"gamma_{k}_mean: {self.gamma_vars[k].mean}")
-        #     print(f"gamma_{k}_cov: {self.gamma_vars[k].cov}\n")
-        #     print()
-
-        # print("_____________________________________________________________________")
-        # print()
-
-        # # Display z probs
-        # print(f"First {num_els} z probs: {[x.probs for x in self.z_vars[:num_els]]}\n")
-        # print(f"Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}")
-        # print()
-
-        # print("_____________________________________________________________________")
-        # print()
-
-        # # Display r vars
-        # print(f"r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}")
-        # print(f"r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}")
-        # print(f"r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}")
-        # print(f"r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}")
-        # print(f"true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}\n")
-        # print()
-
-        # print("_____________________________________________________________________")
-        # print()
-
-        # # Display phi probabilities
-        # print(f"phi_probs: {self.phi_var.conc}")
 
         predicted_labels = [np.argmax(z.probs) for z in self.z_vars]
         entropies = [entropy(z_i.probs) for z_i in self.z_vars]
@@ -546,9 +428,121 @@ if __name__ == '__main__':
                             label_file="./data_files/camera18_node_labels.csv",
                             emb_dim=4)
     
-    ds.dataset_vi(max_iter=19)
+    ds.dataset_vi(max_iter=1)
+
+
+
+    # Spectral Embeddings
+    
+    # plt.rc('font', size=8)  # Default text sizes
+    # plt.rc('axes', titlesize=8)  # Axes title font size
+    # plt.rc('legend', fontsize=8)  # Legend font size
+    # plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    # plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    # plt.rcParams['mathtext.fontset'] = 'stix'
+    # plt.rcParams['font.family'] = 'STIXGeneral'
+
+    # max_label = 7  # Highest group label, assuming labels are 0 through 6
+    # colors = ['red', 'blue', 'green', 'olive', 'orange', 'purple', 'cyan']
+    # markers = ['o', '^', 's', 'x', '+', 'd', '*']
+
+    # # Extract groups and names, only including non-empty groups in the plot
+    # groups = []
+    # group_names = []
+    # for i in range(max_label + 1):
+    #     if ds.true_labels[ds.true_labels == i].size > 0:
+    #         groups.append(ds.embds[ds.true_labels == i][:, :2])
+    #         group_names.append(np.unique(ds.true_names[ds.true_labels == i])[0])
+
+    # # Create the plot with specific figure size
+    # fig, ax = plt.subplots(figsize=(8.4, 6))
+
+    # # Plot each group with dynamic checking and labels
+    # for i, group in enumerate(groups):
+    #     ax.scatter(group[:, 0], group[:, 1], c=colors[i % len(colors)], marker=markers[i % len(markers)], label=group_names[i])
+
+    # # Set axis labels and limits
+    # ax.set_xlabel('X', fontsize=10)
+    # ax.set_ylabel('Y', fontsize=10)
+    # ax.set_xlim(-0.2, 1.0)
+    # ax.set_ylim(-0.4, 0.4)
+
+    # # Add grid for better visibility
+    # ax.grid(True)
+
+    # # Add legend only if there are valid groups
+    # if groups:
+    #     ax.legend()
+
+    # # Adjust layout to prevent clipping
+    # plt.tight_layout()
+
+    # # Define the file path for saving the image, adjust as needed
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/spectral_embeddings.pdf', bbox_inches='tight')
+
+    # # Show the plot
+    # plt.show()
+
+    # Define the file path for saving the image, adjust as needed
+    # Show the plot
+
+
+    # plt.rc('font', size=8)  # Default text sizes
+    # plt.rc('axes', titlesize=8)  # Axes title font size
+    # plt.rc('legend', fontsize=8)  # Legend font size
+    # plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    # plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    # plt.rcParams['mathtext.fontset'] = 'stix'
+    # plt.rcParams['font.family'] = 'STIXGeneral'
+
+    # max_label = 7  # Highest group label, assuming labels are 0 through 6
+    # colors = ['red', 'blue', 'green', 'olive', 'orange', 'purple', 'cyan']
+    # markers = ['o', '^', 's', 'x', '+', 'd', '*']
+
+    # # Extract groups and names, only including non-empty groups in the plot
+    # groups = []
+    # group_names = []
+    # for i in range(max_label + 1):
+    #     if ds.true_labels[ds.true_labels == i].size > 0:
+    #         groups.append(ds.normed_embds[ds.true_labels == i][:, :2])
+    #         group_names.append(np.unique(ds.true_names[ds.true_labels == i])[0])
+
+    # # Create the plot with specific figure size
+    # fig, ax = plt.subplots(figsize=(8.4, 6))
+
+    # # Plot each group with dynamic checking and labels
+    # for i, group in enumerate(groups):
+    #     ax.scatter(group[:, 0], group[:, 1], c=colors[i % len(colors)], marker=markers[i % len(markers)], label=group_names[i])
+
+    # # Set axis labels and limits
+    # ax.set_xlabel('X', fontsize=10)
+    # ax.set_ylabel('Y', fontsize=10)
+    # ax.set_xlim(0.0, 1.2)
+    # ax.set_ylim(-0.75, 0.75)
+
+    # # Add grid for better visibility
+    # ax.grid(True)
+
+    # # Add legend only if there are valid groups
+    # if groups:
+    #     ax.legend()
+
+    # # Adjust layout to prevent clipping
+    # plt.tight_layout()
+
+    # # Define the file path for saving the image, adjust as needed
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/normed_spectral_embeddings.pdf', bbox_inches='tight')
+
+    # # Show the plot
+    # plt.show()
+
+    
+
+
+
 
  
+    
 
 
 
