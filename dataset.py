@@ -19,7 +19,7 @@ from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta, entropy
 
-from sklearn.metrics import adjusted_rand_score
+from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, fowlkes_mallows_score
 import matplotlib.pyplot as plt
 
 
@@ -64,10 +64,45 @@ class Dataset():
         spectral_embedding = eigvecs_trunc @ eigvals_trunc
         return spectral_embedding
     
+    def compute_angles(self):
+        d = self.normed_embds.shape[1]  # Dimension of the vectors
+        angles = np.zeros((self.normed_embds.shape[0], d - 1))
+
+        for i, vec in enumerate(self.normed_embds):
+            for j in range(d - 1):
+                if j == 0:
+                    norm = np.linalg.norm(vec[:j+2])
+                    theta = np.arccos(vec[j+1] / norm)
+                    angles[i, j] = theta if vec[j] >= 0 else 2 * np.pi - theta
+                else:
+                    norm = np.linalg.norm(vec[:j+2])
+                    angles[i, j] = 2 * np.arccos(vec[j+1] / norm)
+
+        return angles
+    
     def gaussian_mm_init(self):
 
+        self.angles = self.compute_angles()
 
-        gmm = GMM_Init(self.normed_embds, n_components=self.K)
+        kmeans = KMeans(n_clusters=self.K, random_state=42)  # random_state for reproducibility
+
+        kmeans_fitted = kmeans.fit(self.embds)
+
+        mutual_info_score = normalized_mutual_info_score(self.true_labels, kmeans_fitted.labels_)
+        fowlkes_mallows = fowlkes_mallows_score(self.true_labels, kmeans_fitted.labels_)
+
+        print(f"==>> mutual_info_score: {mutual_info_score:.3f}")
+        print(f"==>> fowlkes_mallows: {fowlkes_mallows:.3f}")
+
+        assert False
+
+        gmm = GMM_Init(self.angles, n_components=self.K)
+
+        adj_rand_score = adjusted_rand_score(self.true_labels, gmm.labels)
+        print(f"==>> adj_rand_score: {adj_rand_score}")
+        assert False
+
+
         self.gmm = gmm
 
         mu_cov = gmm.mu_prior_cov_estimate()
@@ -536,7 +571,7 @@ if __name__ == '__main__':
     # # Show the plot
     # plt.show()
 
-    
+
 
 
 
