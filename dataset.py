@@ -23,8 +23,8 @@ from sklearn.metrics import adjusted_rand_score
 
 
 
-
-np.random.seed(44)
+current_seed = 44
+np.random.seed(current_seed)
 
 class Dataset():
     
@@ -43,7 +43,7 @@ class Dataset():
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
         self.r_vars = [R(self.d-1) for _ in range(self.N)]
-        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.z_vars = [Z(self.d, self.K, index=i) for i in range(self.N)]
         self.phi_var = Phi(self.K)
         
         # for synthetic dataset
@@ -207,7 +207,7 @@ class Dataset():
                 self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i], self.embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
             
-            if epoch>5:
+            if epoch>4:
                 self.phi_var.vi(self.z_vars)
             
             
@@ -290,7 +290,7 @@ class Dataset_From_Files(Dataset):
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
         self.r_vars = [R(self.d-1) for _ in range(self.N)]
-        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.z_vars = [Z(self.d, self.K, index=i) for i in range(self.N)]
         self.phi_var = Phi(self.K)
         
         # for synthetic dataset
@@ -307,13 +307,30 @@ class Dataset_From_Files(Dataset):
                 filtered_embds.append(embd)
                 filtered_labels.append(label)
                 filtered_names.append(name)
+        
+        negative_r_rows = []
+        # if current_seed == 44:
+        #     negative_r_rows = [20, 67, 85, 101, 102, 157, 175, 427, 447, 623, 630]
+        # else:
+        #     assert False, "need to adust negative rows"
 
-        unique_values = np.unique(filtered_labels)
+        r_adjusted_embds = []
+        r_adjusted_labels = []
+        r_adjusted_names = []
+
+        for i, (embd, label, name) in enumerate(zip(filtered_embds, filtered_labels, filtered_names)):
+            if i not in negative_r_rows:
+                r_adjusted_embds.append(embd)
+                r_adjusted_labels.append(label)
+                r_adjusted_names.append(name)
+
+
+        unique_values = np.unique(r_adjusted_labels)
         num_unique_values = len(unique_values)
 
-        self.embds = np.array(filtered_embds)
-        self.true_labels = np.array(filtered_labels)
-        self.true_names = np.array(filtered_names)
+        self.embds = np.array(r_adjusted_embds)
+        self.true_labels = np.array(r_adjusted_labels)
+        self.true_names = np.array(r_adjusted_names)
         self.K = num_unique_values
 
 
@@ -410,7 +427,7 @@ if __name__ == '__main__':
                             label_file="./data_files/camera18_node_labels.csv",
                             emb_dim=4)
     
-    ds.dataset_vi(max_iter=30)
+    ds.dataset_vi(max_iter=1)
 
  
 

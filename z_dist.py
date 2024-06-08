@@ -4,7 +4,7 @@ from scipy.special import digamma
 
 class Z():
     
-    def __init__(self, d, K, prior=None):
+    def __init__(self, d, K, index, prior=None):
 
         if prior is None:
             self.prior_probs = [1/K for _ in range(K)]
@@ -15,6 +15,7 @@ class Z():
         self.K = K # number of classes
         self.probs = [1/K for _ in range(K)]
         self.d = d
+        self.index = index
 
     
     def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False, real_cov=None):
