@@ -401,6 +401,7 @@ if __name__ == '__main__':
     α = 2
     β = 2
     prior = lambda : beta.rvs(α, β)
+    # prior = lambda : 1
 
     ds = Synthetic_data(μ_1, μ_2, prior, N_t=1000)
     # ds.real_mean_1 = μ_1
@@ -414,7 +415,7 @@ if __name__ == '__main__':
     #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=10) 
+    ds.dataset_vi(max_iter=1) 
 
     
 
@@ -449,51 +450,51 @@ if __name__ == '__main__':
 # Code for the the spectral embeddings
 
 
-    # plt.rc('font', size=8)  # Default text sizes
-    # plt.rc('axes', titlesize=8)  # Axes title font size
-    # plt.rc('legend', fontsize=8)  # Legend font size
-    # plt.rc('xtick', labelsize=10)  # X-axis tick label font size
-    # plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
-    # plt.rcParams['mathtext.fontset'] = 'stix'
-    # plt.rcParams['font.family'] = 'STIXGeneral'
+    plt.rc('font', size=8)  # Default text sizes
+    plt.rc('axes', titlesize=8)  # Axes title font size
+    plt.rc('legend', fontsize=8)  # Legend font size
+    plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    plt.rcParams['mathtext.fontset'] = 'stix'
+    plt.rcParams['font.family'] = 'STIXGeneral'
 
-    # group1 = ds.normed_embds[ds.true_labels == 0]
-    # group2 = ds.normed_embds[ds.true_labels == 1]
+    group1 = ds.embds[ds.true_labels == 0]
+    group2 = ds.embds[ds.true_labels == 1]
 
-    # # Create the plot with specific figure size
-    # fig, ax = plt.subplots(figsize=(8.4, 6))
+    # Create the plot with specific figure size
+    fig, ax = plt.subplots(figsize=(8.4, 6))
 
-    # # Plot the data with updated group labels
-    # ax.scatter(group1[:, 0], group1[:, 1], c='red', marker='o', label='Group 1')
-    # ax.scatter(group2[:, 0], group2[:, 1], c='blue', marker='^', label='Group 2')
+    # Plot the data with updated group labels
+    ax.scatter(group1[:, 0], group1[:, 1], c='red', marker='o', label='Group 1')
+    ax.scatter(group2[:, 0], group2[:, 1], c='blue', marker='^', label='Group 2')
 
-    # # Define mu_1 and mu_2
-    # mu1 = [0.75, 0.25]
-    # mu2 = [0.25, 0.75]
+    # Define mu_1 and mu_2
+    mu1 = [0.75, 0.25]
+    mu2 = [0.25, 0.75]
 
-    # # Add lines through mu_1 and mu_2 with corrected slopes
-    # ax.axline(mu1, slope=1/3, color='green', linestyle='--', label='$\\mu_1=(0.75,0.25)$')
-    # ax.axline(mu2, slope=3, color='purple', linestyle='--', label='$\\mu_2=(0.25,0.75)$')
+    # Add lines through mu_1 and mu_2 with corrected slopes
+    #ax.axline(mu1, slope=1/3, color='green', linestyle='--', label='$\\mu_1=(0.75,0.25)$')
+    #ax.axline(mu2, slope=3, color='purple', linestyle='--', label='$\\mu_2=(0.25,0.75)$')
 
-    # # Set axis labels and limits
-    # ax.set_xlabel('X', fontsize=10)
-    # ax.set_ylabel('Y', fontsize=10)
-    # ax.set_xlim(-0.2, 1.2)  # Adjusted to ensure mu lines are properly visible
-    # ax.set_ylim(-0.2, 1.2)
+    # Set axis labels and limits
+    ax.set_xlabel('X', fontsize=10)
+    ax.set_ylabel('Y', fontsize=10)
+    ax.set_xlim(-0.2, 1.0)  # Adjusted to ensure mu lines are properly visible
+    ax.set_ylim(-0.2, 1.0)
 
-    # # Add grid for better visibility
-    # ax.grid(True)
+    # Add grid for better visibility
+    ax.grid(True)
 
-    # # Add legend
+    # Add legend
     # ax.legend(fontsize=8)
 
-    # # Adjust layout to prevent clipping
-    # plt.tight_layout()
+    # Adjust layout to prevent clipping
+    plt.tight_layout()
 
-    # #plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/synthetic_dataset/projected_spectral_embeddings.pdf', bbox_inches='tight')
+    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/intro_DCSBM_plot.pdf', bbox_inches='tight')
 
-    # # Show the plot
-    # plt.show()
+    # Show the plot
+    plt.show()
 
 
     # Plot the r_i * x_i values for the synthetic dataset
