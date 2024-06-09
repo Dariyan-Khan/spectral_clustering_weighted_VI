@@ -13,7 +13,25 @@ class GibbsDataset(Synthetic_data):
         β = 7
         prior = lambda : np.random.uniform(0.8, 1)
 
-        super().__init__(μ_1, μ_2, prior, N_t=10)
+        super().__init__(μ_1, μ_2, prior, N_t=N_t)
+
+        n_samples = 1000
+        samples = np.zeros((n_samples, 2))
+        true_labels = np.zeros(n_samples, dtype=int)
+        cov_1 = np.array([[0.01, 0.005], [0.005, 0.01]])
+        cov_2 = np.array([[0.01, 0.005], [0.005, 0.01]])
+
+        for i in range(n_samples):
+            if i % 2 == 0:
+                samples[i] = np.random.multivariate_normal(μ_1, cov_1)
+                true_labels[i] = 0
+
+            else:
+                samples[i] = np.random.multivariate_normal(μ_2, cov_2)
+                true_labels[i] = 1
+        
+        self.embds = samples
+        self.normed_embds = self.embds / np.linalg.norm(self.embds, axis=1).reshape(-1, 1)
 
         self.mean_samples = []
         self.sigma_samples = []
@@ -60,15 +78,30 @@ class GibbsDataset(Synthetic_data):
 
     def z_update(self, i):
         z_probs = [] # list to contain z_probs that we then sample from
-        print(self.pi_samples, "pi samples")
+        #print(self.pi_samples, "pi samples")
         for k in range(self.K):
             z_probs.append(self.pi_samples[-1][k] * self.calculate_density(i, self.mean_samples[-1][k], self.sigma_samples[-1][k]))
         
         z_probs = np.array(z_probs)
-        z_probs = z_probs / np.sum(z_probs)
 
-        print(z_probs, "z_probs")
-        z_probs = z_probs.reshape(-1)
+        if np.isnan(z_probs).any():
+            print(z_probs, "z_probs")
+            z_probs = np.array([0.5, 0.5])
+            #assert False
+        
+        try:
+            z_probs = z_probs / np.sum(z_probs)
+
+        # print(z_probs, "z_probs")
+            z_probs = z_probs.reshape(-1)
+
+        except Exception:
+            z_probs = np.array([0.5, 0.5])
+
+        if np.isnan(z_probs).any():
+            print(z_probs, "z_probs")
+            z_probs = np.array([0.5, 0.5])
+
         z_i = np.random.choice(self.K, p=z_probs)
         return z_i
     
@@ -135,7 +168,7 @@ class GibbsDataset(Synthetic_data):
         # Compute acceptance probability
         acceptance_ratio = proposed_density / current_density
 
-        print(acceptance_ratio, "acceptance ratio")
+        # print(acceptance_ratio, "acceptance ratio")
         
         # Accept or reject the proposal based on the computed probability
         if np.random.rand() < acceptance_ratio:
@@ -162,7 +195,7 @@ class GibbsDataset(Synthetic_data):
     def gibbs_sampler(self, max_iters=100):
 
         # Initialize the parameters
-        print(self.normed_embds, "normed embds")
+        # print(self.normed_embds, "normed embds")
         gmm = GMM_Init(self.normed_embds, n_components=self.K)
 
         self.mean_samples = [[x  for x in gmm.cluster_centres]]
@@ -201,7 +234,7 @@ class GibbsDataset(Synthetic_data):
 
 
 if __name__ == "__main__":
-    N_t = 10
+    N_t = 30
     K = 2
     gibbs = GibbsDataset(N_t, K)
     gibbs.gibbs_sampler(max_iters=100)
