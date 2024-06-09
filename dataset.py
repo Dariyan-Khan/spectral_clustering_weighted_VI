@@ -434,11 +434,17 @@ if __name__ == '__main__':
     # # Plot each group with dynamic checking and labels
     # for i, group in enumerate(groups):
     #     ax.scatter(group[:, 0], group[:, 1], c=colors[i % len(colors)], marker=markers[i % len(markers)], label=group_names[i])
+    
+    # ax.plot([0.0, 1.2], [0, 0], 'k-')  # Plots the line y = -x in black
+
+    # ax.text(1.0839, 0.2128, 'Supporters of Conte II government', fontsize=12, va='bottom', ha='right', color='green', fontweight='bold')
+    # ax.text(0.7777, -0.1979, 'Opposition to Conte II government', fontsize=12, va='top', ha='left', color='red', fontweight='bold')
+
 
     # # Set axis labels and limits
     # ax.set_xlabel('X', fontsize=10)
     # ax.set_ylabel('Y', fontsize=10)
-    # ax.set_xlim(-0.2, 1.0)
+    # ax.set_xlim(0, 1.2)
     # ax.set_ylim(-0.4, 0.4)
 
     # # Add grid for better visibility
@@ -452,7 +458,7 @@ if __name__ == '__main__':
     # plt.tight_layout()
 
     # # Define the file path for saving the image, adjust as needed
-    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/spectral_embeddings.pdf', bbox_inches='tight')
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/spectral_embeddings_first_2_coords_with_line.pdf', bbox_inches='tight')
 
     # # Show the plot
     # plt.show()
@@ -521,6 +527,8 @@ if __name__ == '__main__':
 
 
 
+
+
     plt.rc('font', size=8)  # Default text sizes
     plt.rc('axes', titlesize=8)  # Axes title font size
     plt.rc('legend', fontsize=8)  # Legend font size
@@ -578,7 +586,7 @@ if __name__ == '__main__':
     # Set axis labels and limits
     ax.set_xlabel('X', fontsize=10)
     ax.set_ylabel('Y', fontsize=10)
-    ax.set_xlim(-1.4, 1.4)
+    ax.set_xlim(0, 1.4)
     ax.set_ylim(-0.9, 0.9)
 
     # Add grid for better visibility
@@ -592,7 +600,7 @@ if __name__ == '__main__':
     plt.tight_layout()
 
     # Define the file path for saving the image, adjust as needed
-    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/rx_i_first_two_coordss.pdf', bbox_inches='tight')
+    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/rx_i_first_two_coordss_V2.pdf', bbox_inches='tight')
 
     # Show the plot
     plt.show()
