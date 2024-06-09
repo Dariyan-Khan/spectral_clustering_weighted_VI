@@ -16,6 +16,8 @@ class GMM_Init():
         self.gamma_estimates = np.array([self.gamma_scaled(cov_mat) for cov_mat in self.cluster_covs])
 
         self.labels = gmm.predict(dataset)
+
+        
     
 
     def mu_prior_cov_estimate(self):
@@ -71,3 +73,4 @@ class GMM_Init():
         print("Number of elements in each group:")
         for group, count in group_counts.items():
             print(f"Group {group}: {count} elements")
+
