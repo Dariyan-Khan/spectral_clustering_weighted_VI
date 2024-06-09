@@ -84,23 +84,8 @@ class Dataset():
 
         self.angles = self.compute_angles()
 
-        kmeans = KMeans(n_clusters=self.K, random_state=42)  # random_state for reproducibility
 
-        kmeans_fitted = kmeans.fit(self.embds)
-
-        mutual_info_score = normalized_mutual_info_score(self.true_labels, kmeans_fitted.labels_)
-        fowlkes_mallows = fowlkes_mallows_score(self.true_labels, kmeans_fitted.labels_)
-
-        print(f"==>> mutual_info_score: {mutual_info_score:.3f}")
-        print(f"==>> fowlkes_mallows: {fowlkes_mallows:.3f}")
-
-        assert False
-
-        gmm = GMM_Init(self.angles, n_components=self.K)
-
-        adj_rand_score = adjusted_rand_score(self.true_labels, gmm.labels)
-        print(f"==>> adj_rand_score: {adj_rand_score}")
-        assert False
+        gmm = GMM_Init(self.normed_embds, n_components=self.K)
 
 
         self.gmm = gmm
@@ -363,64 +348,16 @@ class Dataset_From_Files(Dataset):
         # Calculate average entropy
         average_entropy = sum(entropies) / len(entropies)
 
-        # print(f"""Iteration {epoch} results:
-                  
-        #             μ_0_mean: {self.means_vars[0].mean}
-        #             μ_0_cov: {self.means_vars[0].cov}
+        mutual_info_score = normalized_mutual_info_score(self.true_labels, predicted_labels)
+        fowlkes_mallows = fowlkes_mallows_score(self.true_labels, predicted_labels)
 
-        #             μ_1_mean: {self.means_vars[1].mean}
-        #             μ_1_cov: {self.means_vars[1].cov}
+        print(f"==>> mutual_info_score: {mutual_info_score:.3f}")
+        print(f"==>> fowlkes_mallows: {fowlkes_mallows:.3f}")
 
 
-        #          _____________________________________________________________________
-
-        #             sigma_0_scale: {self.sigma_star_vars[0].scale}
-        #             sigma_0_prior_scale: {self.sigma_star_vars[0].prior_scale}
-        #             sigma_0_dof: {self.sigma_star_vars[0].dof}
-        #             sigma_0_prior_dof: {self.sigma_star_vars[0].prior_dof}
-        #             sigma_0_first_moment: {self.sigma_star_vars[0].first_moment}
-        #             sigma_0_mode: {self.sigma_star_vars[0].mode()}
-
-
-        #             sigma_1_scale: {self.sigma_star_vars[1].scale}
-        #             sigma_1_prior_scale: {self.sigma_star_vars[1].prior_scale}
-        #             sigma_1_dof: {self.sigma_star_vars[1].dof}
-        #             sigma_1_prior_dof: {self.sigma_star_vars[1].prior_dof}
-        #             sigma_1_first_moment: {self.sigma_star_vars[1].first_moment}
-        #             sigma_1_mode: {self.sigma_star_vars[1].mode()}
-
-
-        #         _____________________________________________________________________
-
-        #             gamma_0_mean: {self.gamma_vars[0].mean}
-        #             gamma_0_cov: {self.gamma_vars[0].cov}
-
-        #             gamma_1_mean: {self.gamma_vars[1].mean}
-        #             gamma_1_cov: {self.gamma_vars[1].cov}
-
-        #         _____________________________________________________________________
-
-        #             First 10 z probs: {[x.probs for x in self.z_vars[:num_els]]}
-        #             Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
-        #             Average Entropy: {average_entropy}
-
-        #         _____________________________________________________________________
-                    
-        #             r_first_alpha: {[x.alpha for x in self.r_vars[:num_els]]}
-        #             r_first_beta: {[x.beta for x in self.r_vars[:num_els]]}
-        #             r_first moment: {[x.first_moment for x in self.r_vars[:num_els]]}
-        #             r_second moment: {[x.second_moment for x in self.r_vars[:num_els]]}
-
-        #             true r_values: {[np.linalg.norm(self.embds[i]) for i in range(num_els)]}
-
-        #          _____________________________________________________________________
-
-        #             phi_probs: {self.phi_var.conc}
-                  
-                  
-        #           """)
-
-        print(f"""Iteration {epoch} results:
+        print(f"""
+              
+              Iteration {epoch} results:
                   
                     μ_0_mean: {self.means_vars[0].mean}
                     μ_0_cov: {self.means_vars[0].cov}
@@ -450,6 +387,8 @@ class Dataset_From_Files(Dataset):
                 _____________________________________________________________________
 
                     Adjusted Rand Score: {adjusted_rand_score(self.true_labels, predicted_labels)}
+                    Mutual Info Score: {mutual_info_score}
+                    Fowlkes Mallows Score: {fowlkes_mallows}
                     Average Entropy: {average_entropy}
 
                 _____________________________________________________________________
@@ -463,7 +402,7 @@ if __name__ == '__main__':
                             label_file="./data_files/camera18_node_labels.csv",
                             emb_dim=4)
     
-    ds.dataset_vi(max_iter=1)
+    ds.dataset_vi(max_iter=19)
 
 
 
@@ -522,6 +461,15 @@ if __name__ == '__main__':
     # Show the plot
 
 
+
+
+
+
+
+
+
+
+
     # plt.rc('font', size=8)  # Default text sizes
     # plt.rc('axes', titlesize=8)  # Axes title font size
     # plt.rc('legend', fontsize=8)  # Legend font size
@@ -570,6 +518,84 @@ if __name__ == '__main__':
 
     # # Show the plot
     # plt.show()
+
+
+
+    plt.rc('font', size=8)  # Default text sizes
+    plt.rc('axes', titlesize=8)  # Axes title font size
+    plt.rc('legend', fontsize=8)  # Legend font size
+    plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    plt.rcParams['mathtext.fontset'] = 'stix'
+    plt.rcParams['font.family'] = 'STIXGeneral'
+
+    max_label = 7  # Highest group label, assuming labels are 0 through 6
+    colors = ['red', 'blue', 'green', 'olive', 'orange', 'purple', 'cyan']
+    markers = ['o', '^', 's', 'x', '+', 'd', '*']
+
+    # Extract groups and names, only including non-empty groups in the plot
+    groups = []
+    group_names = []
+
+    
+
+    normalized_first_moments = []
+    for r_var in ds.r_vars:
+        first_moment = r_var.first_moment
+        
+        # Check if the first_moment is an instance of np.ndarray or a list
+        if isinstance(first_moment, (np.ndarray, list)):
+            if len(first_moment) == 1:
+                # If it's a single-element array or list, extract the element
+                normalized_first_moments.append(first_moment[0])
+            else:
+                # Handle cases where the array might have more than one element
+                print("Unexpected array length:", first_moment)
+        else:
+            # If it's already a number, just append it to the new list
+            normalized_first_moments.append(first_moment)
+
+    # Convert the list of normalized first moments to a numpy array
+    normalized_first_moments = np.array(normalized_first_moments)
+    normalized_first_moments = normalized_first_moments[:, np.newaxis]
+
+
+    # r_vars_first_moment_arr = np.array([r_var.first_moment for r_var in ds.r_vars])
+
+
+    for i in range(max_label + 1):
+        if ds.true_labels[ds.true_labels == i].size > 0:
+            groups.append( normalized_first_moments[ds.true_labels == i] * ds.normed_embds[ds.true_labels == i][:, :2])
+            group_names.append(np.unique(ds.true_names[ds.true_labels == i])[0])
+
+    # Create the plot with specific figure size
+    fig, ax = plt.subplots(figsize=(8.4, 6))
+
+    # Plot each group with dynamic checking and labels
+    for i, group in enumerate(groups):
+        ax.scatter(group[:, 0], group[:, 1], c=colors[i % len(colors)], marker=markers[i % len(markers)], label=group_names[i])
+
+    # Set axis labels and limits
+    ax.set_xlabel('X', fontsize=10)
+    ax.set_ylabel('Y', fontsize=10)
+    ax.set_xlim(-1.4, 1.4)
+    ax.set_ylim(-0.9, 0.9)
+
+    # Add grid for better visibility
+    ax.grid(True)
+
+    # Add legend only if there are valid groups
+    if groups:
+        ax.legend()
+
+    # Adjust layout to prevent clipping
+    plt.tight_layout()
+
+    # Define the file path for saving the image, adjust as needed
+    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/rx_i_first_two_coordss.pdf', bbox_inches='tight')
+
+    # Show the plot
+    plt.show()
 
 
 
