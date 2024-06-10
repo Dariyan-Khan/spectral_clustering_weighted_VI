@@ -465,7 +465,7 @@ if __name__ == '__main__':
     #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=10) 
+    ds.dataset_vi(max_iter=4) 
 
     
 
@@ -593,7 +593,7 @@ if __name__ == '__main__':
     # # Set axis labels and limits
     # plt.xlabel('X')
     # plt.ylabel('Y')
-    # plt.xlim(-0.2, 1.2)  # Adjusted the upper limit to 1.5 for better visibility of lines
+    # plt.xlim(-0.2, 3.5)  # Adjusted the upper limit to 1.5 for better visibility of lines
     # plt.ylim(-0.2, 1.2)
 
     # # Add grid for better visibility
@@ -602,10 +602,64 @@ if __name__ == '__main__':
     # # Add legend
     # plt.legend()
 
-    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/synthetic_dataset/r_ix_i_plot.pdf', bbox_inches='tight')
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/weighted/synthetic_dataset/box_plot.pdf', bbox_inches='tight')
 
     # # Show the plot
     # plt.show()
+
+    # Set font and plot style parameters
+    import matplotlib.pyplot as plt
+
+    # Sample data
+    weights = ds.weights  # Replace with your actual list of integers
+
+    # Set font and plot style parameters
+    import matplotlib.pyplot as plt
+
+# Sample data
+    weights = ds.weights  # Replace with your actual list of integers
+
+# Set font and plot style parameters
+    plt.rc('font', size=8)  # Default text sizes
+    plt.rc('axes', titlesize=8)  # Axes title font size
+    plt.rc('legend', fontsize=8)  # Legend font size
+    plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    plt.rcParams['mathtext.fontset'] = 'stix'
+    plt.rcParams['font.family'] = 'STIXGeneral'
+    plt.rcParams["savefig.format"] = 'pdf'
+
+    # Create the figure and axis
+    fig, ax = plt.subplots()
+
+    # Set figure dimensions in inches (1 inch = 2.54 cm)
+    fig.set_figwidth(3.15)  # Width in inches
+    fig.set_figheight(2.5)  # Height in inches
+
+    # Create the horizontal box plot
+    ax.boxplot(weights, vert=False)
+
+    # Remove x-axis label
+    ax.set_xlabel("")
+
+    # Set y-axis label
+    ax.set_ylabel("Weights", fontsize=10)
+
+    # Remove any titles
+    # ax.set_title("This is a plot title")  # Remove or comment out if present
+
+    # Auto layout adjustment
+    plt.tight_layout()
+
+    # Save the figure
+    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/weighted/synthetic_dataset/box_plot.pdf', bbox_inches='tight')
+
+    # Display the plot
+    plt.show()
+
+
+
+
 
     
 
