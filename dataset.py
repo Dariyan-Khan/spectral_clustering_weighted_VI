@@ -19,7 +19,26 @@ from dataset_initialisation import GMM_Init
 from scipy.stats import beta, entropy
 import matplotlib.pyplot as plt
 
-np.random.seed(42)
+import geomstats.backend as gs
+import geomstats.geometry.hypersphere as hypersphere
+from geomstats.learning.frechet_mean import FrechetMean
+
+
+def vector_projection(u, v):
+        # Compute the dot product of vectors u and v
+        dot_product = np.dot(v, u)
+        
+        # Compute the norm squared of vector u
+        norm_u_squared = np.dot(u, u)
+        
+        # Calculate the projection of v onto u
+        projection = (dot_product / norm_u_squared) * u
+        
+        return projection
+
+
+
+#np.random.seed(42)
 class Dataset():
     
     def __init__(self, adj_mat, emb_dim, K=None, synthetic=False):
@@ -36,13 +55,17 @@ class Dataset():
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
-        self.r_vars = [R(self.d-1) for _ in range(self.N)]
-        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.r_vars = [R(self.d-1, index) for index in range(self.N)]
+        self.z_vars = [Z(self.d, self.K, index) for index in range(self.N)]
         self.phi_var = Phi(self.K)
         
         # for synthetic dataset
         self.synthetic=synthetic
         self.reversed_labels=False
+
+        max_norm = max([np.linalg.norm(x) for x in self.embds])
+
+        self.weights = [np.linalg.norm(x) / max_norm for x in self.embds]
 
 
             
@@ -193,24 +216,51 @@ class Dataset():
         #     z_var.probs = predicted_probs
 
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
-        for epoch in range(1,max_iter+1):
-
-             # for k in range(self.K):
+        for epoch in range(1, max_iter+1):
 
             for k in range(self.K):
-
-                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
+                # pass
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var,self.weights, self)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self.weights, self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self.weights, self, real_cov=None)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.weights, self.normed_embds[i], real_cov=None) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, self.weights, verbose=i<10, real_cov=None)
             
-            self.phi_var.vi(self.z_vars)
+            self.phi_var.vi(self.z_vars, self.weights)
+
+
+            for k in range(self.K):
+                self.update_weights(k)
             
             
             self.print_progress(epoch)
+    
+    def update_weights(self, k):
+        embds_in_cluster = []
+        index_of_embds_in_cluster = []
+        max_norm = 0
+        sphere = hypersphere.Hypersphere(dim=self.d-1)
+
+        for i in range(self.N):
+            if np.argmax(self.z_vars[i].probs) == k:
+                embds_in_cluster.append(self.embds[i])
+                index_of_embds_in_cluster.append(i)
+                max_norm = max(max_norm, np.linalg.norm(self.embds[i]))
+        
+        proj_embds_in_cluster = np.array([(embd /np.linalg.norm(embd)) * max_norm for embd in embds_in_cluster])
+
+        proj_embds_in_cluster = np.array(embds_in_cluster)
+
+        mean = FrechetMean(sphere)
+        mean.fit(proj_embds_in_cluster)
+        frechet_mean = mean.estimate_
+
+        orthogonally_proj_points = [vector_projection(frechet_mean, embd) for embd in proj_embds_in_cluster]
+
+        for i, (w_index, orth_proj) in enumerate(zip(index_of_embds_in_cluster, orthogonally_proj_points)):
+            self.weights[w_index] = min(np.linalg.norm(orth_proj) / max_norm, 1.0)
     
     def print_progress(self, epoch, num_els=10):
 
@@ -415,7 +465,7 @@ if __name__ == '__main__':
     #     ds.means_vars[k].mean = μ_list[k]
 
 
-    ds.dataset_vi(max_iter=1) 
+    ds.dataset_vi(max_iter=10) 
 
     
 
@@ -450,51 +500,51 @@ if __name__ == '__main__':
 # Code for the the spectral embeddings
 
 
-    plt.rc('font', size=8)  # Default text sizes
-    plt.rc('axes', titlesize=8)  # Axes title font size
-    plt.rc('legend', fontsize=8)  # Legend font size
-    plt.rc('xtick', labelsize=10)  # X-axis tick label font size
-    plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
-    plt.rcParams['mathtext.fontset'] = 'stix'
-    plt.rcParams['font.family'] = 'STIXGeneral'
+    # plt.rc('font', size=8)  # Default text sizes
+    # plt.rc('axes', titlesize=8)  # Axes title font size
+    # plt.rc('legend', fontsize=8)  # Legend font size
+    # plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    # plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    # plt.rcParams['mathtext.fontset'] = 'stix'
+    # plt.rcParams['font.family'] = 'STIXGeneral'
 
-    group1 = ds.embds[ds.true_labels == 0]
-    group2 = ds.embds[ds.true_labels == 1]
+    # group1 = ds.embds[ds.true_labels == 0]
+    # group2 = ds.embds[ds.true_labels == 1]
 
-    # Create the plot with specific figure size
-    fig, ax = plt.subplots(figsize=(8.4, 6))
+    # # Create the plot with specific figure size
+    # fig, ax = plt.subplots(figsize=(8.4, 6))
 
-    # Plot the data with updated group labels
-    ax.scatter(group1[:, 0], group1[:, 1], c='red', marker='o', label='Group 1')
-    ax.scatter(group2[:, 0], group2[:, 1], c='blue', marker='^', label='Group 2')
+    # # Plot the data with updated group labels
+    # ax.scatter(group1[:, 0], group1[:, 1], c='red', marker='o', label='Group 1')
+    # ax.scatter(group2[:, 0], group2[:, 1], c='blue', marker='^', label='Group 2')
 
-    # Define mu_1 and mu_2
-    mu1 = [0.75, 0.25]
-    mu2 = [0.25, 0.75]
+    # # Define mu_1 and mu_2
+    # mu1 = [0.75, 0.25]
+    # mu2 = [0.25, 0.75]
 
-    # Add lines through mu_1 and mu_2 with corrected slopes
-    #ax.axline(mu1, slope=1/3, color='green', linestyle='--', label='$\\mu_1=(0.75,0.25)$')
-    #ax.axline(mu2, slope=3, color='purple', linestyle='--', label='$\\mu_2=(0.25,0.75)$')
+    # # Add lines through mu_1 and mu_2 with corrected slopes
+    # #ax.axline(mu1, slope=1/3, color='green', linestyle='--', label='$\\mu_1=(0.75,0.25)$')
+    # #ax.axline(mu2, slope=3, color='purple', linestyle='--', label='$\\mu_2=(0.25,0.75)$')
 
-    # Set axis labels and limits
-    ax.set_xlabel('X', fontsize=10)
-    ax.set_ylabel('Y', fontsize=10)
-    ax.set_xlim(-0.2, 1.0)  # Adjusted to ensure mu lines are properly visible
-    ax.set_ylim(-0.2, 1.0)
+    # # Set axis labels and limits
+    # ax.set_xlabel('X', fontsize=10)
+    # ax.set_ylabel('Y', fontsize=10)
+    # ax.set_xlim(-0.2, 1.0)  # Adjusted to ensure mu lines are properly visible
+    # ax.set_ylim(-0.2, 1.0)
 
-    # Add grid for better visibility
-    ax.grid(True)
+    # # Add grid for better visibility
+    # ax.grid(True)
 
-    # Add legend
-    # ax.legend(fontsize=8)
+    # # Add legend
+    # # ax.legend(fontsize=8)
 
-    # Adjust layout to prevent clipping
-    plt.tight_layout()
+    # # Adjust layout to prevent clipping
+    # plt.tight_layout()
 
-    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/intro_DCSBM_plot.pdf', bbox_inches='tight')
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/intro_DCSBM_plot.pdf', bbox_inches='tight')
 
-    # Show the plot
-    plt.show()
+    # # Show the plot
+    # plt.show()
 
 
     # Plot the r_i * x_i values for the synthetic dataset
