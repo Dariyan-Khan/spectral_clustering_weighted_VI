@@ -232,7 +232,7 @@ class R():
                 assert False
      
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, datapoint, real_cov=None):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, weights, norm_datapoint, datapoint, real_cov=None):
 
         C = 0
         D = 0

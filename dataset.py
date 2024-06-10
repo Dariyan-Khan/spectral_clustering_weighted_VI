@@ -29,7 +29,7 @@ from geomstats.learning.frechet_mean import FrechetMean
 
 
 
-np.random.seed(44)
+np.random.seed(47)
 
 def vector_projection(u, v):
         # Compute the dot product of vectors u and v
@@ -234,7 +234,7 @@ class Dataset():
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self.weights, self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.weights, self.normed_embds[i]) 
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.weights, self.normed_embds[i], self.embds[i]) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, self.weights, verbose=i<10)
             
             self.phi_var.vi(self.z_vars, self.weights)
@@ -315,6 +315,8 @@ class Dataset():
                     Average Entropy: {average_entropy}
 
                 _____________________________________________________________________
+
+                    weights: {self.weights[:10]}
                   
                   """)
         
@@ -334,13 +336,17 @@ class Dataset_From_Files(Dataset):
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
-        self.r_vars = [R(self.d-1) for _ in range(self.N)]
-        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.r_vars = [R(self.d-1, index) for index in range(self.N)]
+        self.z_vars = [Z(self.d, self.K, index) for index in range(self.N)]
         self.phi_var = Phi(self.K)
         
         # for synthetic dataset
         self.synthetic=synthetic
         self.reversed_labels=False
+
+        max_norm = max([np.linalg.norm(x) for x in self.embds])
+
+        self.weights = [np.linalg.norm(x) / max_norm for x in self.embds]
     
     def clean_data(self):
         filtered_embds = []
@@ -578,81 +584,81 @@ if __name__ == '__main__':
 
 
 
-    plt.rc('font', size=8)  # Default text sizes
-    plt.rc('axes', titlesize=8)  # Axes title font size
-    plt.rc('legend', fontsize=8)  # Legend font size
-    plt.rc('xtick', labelsize=10)  # X-axis tick label font size
-    plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
-    plt.rcParams['mathtext.fontset'] = 'stix'
-    plt.rcParams['font.family'] = 'STIXGeneral'
+    # plt.rc('font', size=8)  # Default text sizes
+    # plt.rc('axes', titlesize=8)  # Axes title font size
+    # plt.rc('legend', fontsize=8)  # Legend font size
+    # plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    # plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    # plt.rcParams['mathtext.fontset'] = 'stix'
+    # plt.rcParams['font.family'] = 'STIXGeneral'
 
-    max_label = 7  # Highest group label, assuming labels are 0 through 6
-    colors = ['red', 'blue', 'green', 'olive', 'orange', 'purple', 'cyan']
-    markers = ['o', '^', 's', 'x', '+', 'd', '*']
+    # max_label = 7  # Highest group label, assuming labels are 0 through 6
+    # colors = ['red', 'blue', 'green', 'olive', 'orange', 'purple', 'cyan']
+    # markers = ['o', '^', 's', 'x', '+', 'd', '*']
 
-    # Extract groups and names, only including non-empty groups in the plot
-    groups = []
-    group_names = []
+    # # Extract groups and names, only including non-empty groups in the plot
+    # groups = []
+    # group_names = []
 
     
 
-    normalized_first_moments = []
-    for r_var in ds.r_vars:
-        first_moment = r_var.first_moment
+    # normalized_first_moments = []
+    # for r_var in ds.r_vars:
+    #     first_moment = r_var.first_moment
         
-        # Check if the first_moment is an instance of np.ndarray or a list
-        if isinstance(first_moment, (np.ndarray, list)):
-            if len(first_moment) == 1:
-                # If it's a single-element array or list, extract the element
-                normalized_first_moments.append(first_moment[0])
-            else:
-                # Handle cases where the array might have more than one element
-                print("Unexpected array length:", first_moment)
-        else:
-            # If it's already a number, just append it to the new list
-            normalized_first_moments.append(first_moment)
+    #     # Check if the first_moment is an instance of np.ndarray or a list
+    #     if isinstance(first_moment, (np.ndarray, list)):
+    #         if len(first_moment) == 1:
+    #             # If it's a single-element array or list, extract the element
+    #             normalized_first_moments.append(first_moment[0])
+    #         else:
+    #             # Handle cases where the array might have more than one element
+    #             print("Unexpected array length:", first_moment)
+    #     else:
+    #         # If it's already a number, just append it to the new list
+    #         normalized_first_moments.append(first_moment)
 
-    # Convert the list of normalized first moments to a numpy array
-    normalized_first_moments = np.array(normalized_first_moments)
-    normalized_first_moments = normalized_first_moments[:, np.newaxis]
-
-
-    # r_vars_first_moment_arr = np.array([r_var.first_moment for r_var in ds.r_vars])
+    # # Convert the list of normalized first moments to a numpy array
+    # normalized_first_moments = np.array(normalized_first_moments)
+    # normalized_first_moments = normalized_first_moments[:, np.newaxis]
 
 
-    for i in range(max_label + 1):
-        if ds.true_labels[ds.true_labels == i].size > 0:
-            groups.append( normalized_first_moments[ds.true_labels == i] * ds.normed_embds[ds.true_labels == i][:, :2])
-            group_names.append(np.unique(ds.true_names[ds.true_labels == i])[0])
+    # # r_vars_first_moment_arr = np.array([r_var.first_moment for r_var in ds.r_vars])
 
-    # Create the plot with specific figure size
-    fig, ax = plt.subplots(figsize=(8.4, 6))
 
-    # Plot each group with dynamic checking and labels
-    for i, group in enumerate(groups):
-        ax.scatter(group[:, 0], group[:, 1], c=colors[i % len(colors)], marker=markers[i % len(markers)], label=group_names[i])
+    # for i in range(max_label + 1):
+    #     if ds.true_labels[ds.true_labels == i].size > 0:
+    #         groups.append( normalized_first_moments[ds.true_labels == i] * ds.normed_embds[ds.true_labels == i][:, :2])
+    #         group_names.append(np.unique(ds.true_names[ds.true_labels == i])[0])
 
-    # Set axis labels and limits
-    ax.set_xlabel('X', fontsize=10)
-    ax.set_ylabel('Y', fontsize=10)
-    ax.set_xlim(0, 1.4)
-    ax.set_ylim(-0.9, 0.9)
+    # # Create the plot with specific figure size
+    # fig, ax = plt.subplots(figsize=(8.4, 6))
 
-    # Add grid for better visibility
-    ax.grid(True)
+    # # Plot each group with dynamic checking and labels
+    # for i, group in enumerate(groups):
+    #     ax.scatter(group[:, 0], group[:, 1], c=colors[i % len(colors)], marker=markers[i % len(markers)], label=group_names[i])
 
-    # Add legend only if there are valid groups
-    if groups:
-        ax.legend()
+    # # Set axis labels and limits
+    # ax.set_xlabel('X', fontsize=10)
+    # ax.set_ylabel('Y', fontsize=10)
+    # ax.set_xlim(0, 1.4)
+    # ax.set_ylim(-0.9, 0.9)
 
-    # Adjust layout to prevent clipping
-    plt.tight_layout()
+    # # Add grid for better visibility
+    # ax.grid(True)
 
-    # Define the file path for saving the image, adjust as needed
-    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/rx_i_first_two_coordss_V2.pdf', bbox_inches='tight')
+    # # Add legend only if there are valid groups
+    # if groups:
+    #     ax.legend()
 
-    # Show the plot
-    plt.show()
+    # # Adjust layout to prevent clipping
+    # plt.tight_layout()
+
+    # # Define the file path for saving the image, adjust as needed
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/rx_i_first_two_coordss_V2.pdf', bbox_inches='tight')
+
+    # # Show the plot
+    # plt.show()
 
 
 
