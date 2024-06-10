@@ -22,10 +22,26 @@ from scipy.stats import beta, entropy
 from sklearn.metrics import adjusted_rand_score, normalized_mutual_info_score, fowlkes_mallows_score
 import matplotlib.pyplot as plt
 
+import geomstats.backend as gs
+import geomstats.geometry.hypersphere as hypersphere
+from geomstats.learning.frechet_mean import FrechetMean
+
 
 
 
 np.random.seed(44)
+
+def vector_projection(u, v):
+        # Compute the dot product of vectors u and v
+        dot_product = np.dot(v, u)
+        
+        # Compute the norm squared of vector u
+        norm_u_squared = np.dot(u, u)
+        
+        # Calculate the projection of v onto u
+        projection = (dot_product / norm_u_squared) * u
+        
+        return projection
 
 class Dataset():
     
@@ -43,13 +59,17 @@ class Dataset():
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
-        self.r_vars = [R(self.d-1) for _ in range(self.N)]
-        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.r_vars = [R(self.d-1, index) for index in range(self.N)]
+        self.z_vars = [Z(self.d, self.K, index) for index in range(self.N)]
         self.phi_var = Phi(self.K)
         
         # for synthetic dataset
         self.synthetic=synthetic
         self.reversed_labels=False
+
+        max_norm = max([np.linalg.norm(x) for x in self.embds])
+
+        self.weights = [np.linalg.norm(x) / max_norm for x in self.embds]
 
 
             
@@ -205,24 +225,53 @@ class Dataset():
         self.print_progress(0)
 
         # for epoch in tqdm(range(max_iter), desc="Performing VI"):
-        for epoch in range(1,max_iter+1):
-
-             # for k in range(self.K):
+        for epoch in range(1, max_iter+1):
 
             for k in range(self.K):
-
-                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self)
+                # pass
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var,self.weights, self)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self.weights, self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self.weights, self)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i], self.embds[i]) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10)
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.weights, self.normed_embds[i]) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, self.weights, verbose=i<10)
             
-            self.phi_var.vi(self.z_vars)
+            self.phi_var.vi(self.z_vars, self.weights)
+
+
+            for k in range(self.K):
+                self.update_weights(k)
             
             
             self.print_progress(epoch)
+        
+    
+    def update_weights(self, k):
+        embds_in_cluster = []
+        index_of_embds_in_cluster = []
+        max_norm = 0
+        sphere = hypersphere.Hypersphere(dim=self.d-1)
+
+        for i in range(self.N):
+            if np.argmax(self.z_vars[i].probs) == k:
+                embds_in_cluster.append(self.embds[i])
+                index_of_embds_in_cluster.append(i)
+                max_norm = max(max_norm, np.linalg.norm(self.embds[i]))
+        
+        proj_embds_in_cluster = np.array([(embd /np.linalg.norm(embd)) * max_norm for embd in embds_in_cluster])
+
+        proj_embds_in_cluster = np.array(embds_in_cluster)
+
+        mean = FrechetMean(sphere)
+        mean.fit(proj_embds_in_cluster)
+        frechet_mean = mean.estimate_
+
+        orthogonally_proj_points = [vector_projection(frechet_mean, embd) for embd in proj_embds_in_cluster]
+
+        for i, (w_index, orth_proj) in enumerate(zip(index_of_embds_in_cluster, orthogonally_proj_points)):
+            self.weights[w_index] = min(np.linalg.norm(orth_proj) / max_norm, 1.0)
+    
     
     def print_progress(self, epoch, num_els=10):
 

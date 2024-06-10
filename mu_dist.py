@@ -30,7 +30,7 @@ class Mu():
             return False
     
 
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, datapoints, real_cov=None):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, γ_k, phi_var, weights, datapoints, real_cov=None):
 
         n_k = 0
         B = 0
@@ -38,8 +38,8 @@ class Mu():
         for (i, data) in enumerate(datapoints.normed_embds):
 
             z = z_vi_list[i]
-            n_k += z.probs[self.k] #phi_var.conc[self.k
-            B += r_vi_list[i].first_moment * z.probs[self.k] * data
+            n_k += weights[i] * z.probs[self.k] #phi_var.conc[self.k
+            B += weights[i] * r_vi_list[i].first_moment * z.probs[self.k] * data
 
 
         sigma_inv_estimate = jensen_approx(sigma_star_k, γ_k) 

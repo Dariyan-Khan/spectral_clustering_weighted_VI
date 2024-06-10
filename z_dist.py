@@ -4,7 +4,7 @@ from scipy.special import digamma
 
 class Z():
     
-    def __init__(self, d, K, prior=None):
+    def __init__(self, d, K, index, prior=None):
 
         if prior is None:
             self.prior_probs = [1/K for _ in range(K)]
@@ -17,7 +17,7 @@ class Z():
         self.d = d
 
     
-    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, verbose=False, real_cov=None):
+    def vi(self, r_i, μ_list, sigma_star_list, γ_list, norm_datapoint, phi, weights, verbose=False, real_cov=None):
 
         log_probs = np.array([1/self.K for _ in range(self.K)])
 

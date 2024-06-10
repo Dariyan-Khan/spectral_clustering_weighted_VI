@@ -14,12 +14,12 @@ class Phi():
 
         assert len(self.prior_conc) == self.K, "Number of classes must match number of prior parameters"
     
-    def vi(self, z_vi_list): # Need to pass in a list of z distributions for each point
+    def vi(self, z_vi_list, weights): # Need to pass in a list of z distributions for each point
 
         exp_els_in_cluster = self.prior_conc
-        for z_i in z_vi_list:
+        for i, z_i in enumerate(z_vi_list):
             for k in range(self.K):
-                exp_els_in_cluster[k] += z_i.probs[k]
+                exp_els_in_cluster[k] += weights[i] * z_i.probs[k]
             
             self.conc = exp_els_in_cluster
             

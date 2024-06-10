@@ -8,7 +8,7 @@ import warnings
 
 class R():
 
-    def __init__(self, d, alpha=None, beta=None):
+    def __init__(self, d, index, alpha=None, beta=None):
 
         if alpha is None:
             self.alpha = np.random.uniform(2, 5) # 2
@@ -42,6 +42,8 @@ class R():
         # self.second_moment = np.exp(self.compute_log_Id(order=self.d+2) - self.log_norm_const)
 
         self.pdf = lambda x: ((x**(self.d)) * np.exp(-self.alpha * (x - self.beta)**2)) /  self.norm_const
+
+        self.index = index
 
     
     def compute_Id(self, order):
@@ -254,10 +256,10 @@ class R():
             sigma_inv = np.reshape(sigma_inv, (self.d+1, self.d+1))
             # sigma_inv = sigma_inv_approx(sigma, γ, α=0.01)
 
-            C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            C += weights[self.index] * z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
 
             
-            D_value = z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            D_value = weights[self.index] * z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
 
             D_collection.append(z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean))
             z_probs_collection.append(z_i.probs[k])
