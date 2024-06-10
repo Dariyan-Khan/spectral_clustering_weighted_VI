@@ -60,7 +60,7 @@ class Z():
                 np.trace(np.matmul( np.outer(μ.mean, μ.mean) + μ.cov, Sigma_inv))
             )
             
-            P_k = weights[self.index] * P_k_1 + P_k_2
+            P_k =  P_k_1 + P_k_2
 
             log_probs[k] = P_k + digamma(phi.conc[k]) # np.log(phi.conc[k])
 

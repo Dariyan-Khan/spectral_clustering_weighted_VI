@@ -18,7 +18,24 @@ from dataset_initialisation import GMM_Init
 
 from scipy.stats import beta
 
-# np.random.seed(44)
+import geomstats.backend as gs
+import geomstats.geometry.hypersphere as hypersphere
+from geomstats.learning.frechet_mean import FrechetMean
+
+np.random.seed(44)
+
+
+def vector_projection(u, v):
+        # Compute the dot product of vectors u and v
+        dot_product = np.dot(v, u)
+        
+        # Compute the norm squared of vector u
+        norm_u_squared = np.dot(u, u)
+        
+        # Calculate the projection of v onto u
+        projection = (dot_product / norm_u_squared) * u
+        
+        return projection
 
 class Dataset():
     
@@ -40,7 +57,9 @@ class Dataset():
         self.synthetic=True
         self.true_labels = None
 
-        self.weights = [0.0 for _ in range(self.N)]
+        max_norm = max([np.linalg.norm(x) for x in self.embds])
+
+        self.weights = [np.linalg.norm(x) / max_norm for x in self.embds]
 
 
 
@@ -58,12 +77,46 @@ class Dataset():
                 self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self.weights, self, real_cov=real_cov)
 
             for i in range(self.N):
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i], self.weights, real_cov=real_cov) 
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.weights, self.normed_embds[i], real_cov=real_cov) 
                 self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, self.weights, verbose=i<10, real_cov=real_cov)
             
             self.phi_var.vi(self.z_vars, self.weights)
+
+
+            for k in range(self.K):
+                self.update_weights(k)
         
             self.print_progress(epoch, num_els=10, real_cov=real_cov)
+        
+    
+    def update_weights(self, k):
+        embds_in_cluster = []
+        index_of_embds_in_cluster = []
+        max_norm = 0
+        sphere = hypersphere.Hypersphere(dim=self.d-1)
+
+        for i in range(self.N):
+            if np.argmax(self.z_vars[i].probs) == k:
+                embds_in_cluster.append(self.embds[i])
+                index_of_embds_in_cluster.append(i)
+                max_norm = max(max_norm, np.linalg.norm(self.embds[i]))
+        
+        proj_embds_in_cluster = np.array([(embd /np.linalg.norm(embd)) * max_norm for embd in embds_in_cluster])
+
+        proj_embds_in_cluster = np.array(embds_in_cluster)
+
+        mean = FrechetMean(sphere)
+        mean.fit(proj_embds_in_cluster)
+        frechet_mean = mean.estimate_
+
+        orthogonally_proj_points = [vector_projection(frechet_mean, embd) for embd in proj_embds_in_cluster]
+
+        for i, (w_index, orth_proj) in enumerate(zip(index_of_embds_in_cluster, orthogonally_proj_points)):
+            self.weights[w_index] = min(np.linalg.norm(orth_proj) / max_norm, 1.0)
+    
+
+
+
             
             
     
@@ -170,14 +223,15 @@ class Dataset():
 
 if __name__ == '__main__':
 
+
     # μ_1 = μ_1 / np.linalg.norm(μ_1)
     # μ_2 = μ_2 / np.linalg.norm(μ_2)
 
     μ_0 = np.array([0.75,0.25])
-    cov_0 = np.array([[0.01, 0.005], [0.005, 0.01]])
+    cov_0 = np.array([[0.1, 0.05], [0.05, 0.1]])
 
     μ_1 = np.array([0.25, 0.75])
-    cov_1 = np.array([[0.01, 0.005], [0.005, 0.01]])
+    cov_1 = np.array([[0.1, 0.05], [0.05, 0.1]])
 
     gamma_prior_cov = np.array([0.001]) #0.01*np.array([0.1])
 

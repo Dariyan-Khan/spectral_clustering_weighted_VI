@@ -8,7 +8,7 @@ from copy import deepcopy
 
 class R():
 
-    def __init__(self, d, alpha=None, index, beta=None):
+    def __init__(self, d, index, alpha=None, beta=None):
 
         if alpha is None:
             self.alpha = np.random.uniform(2, 5) # 2
