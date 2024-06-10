@@ -34,11 +34,13 @@ class Dataset():
         self.sigma_star_vars = [Sigma_Star(i, self.d) for i in range(self.K)]
         self.gamma_vars = [Gamma(i, self.d) for i in range(self.K)]
  
-        self.r_vars = [R(self.d-1) for _ in range(self.N)]
-        self.z_vars = [Z(self.d, self.K) for _ in range(self.N)]
+        self.r_vars = [R(self.d-1, index) for index in range(self.N)]
+        self.z_vars = [Z(self.d, self.K, index) for index in range(self.N)]
         self.phi_var = Phi(self.K)
         self.synthetic=True
         self.true_labels = None
+
+        self.weights = [0.0 for _ in range(self.N)]
 
 
 
@@ -51,16 +53,15 @@ class Dataset():
 
             for k in range(self.K):
                 # pass
-                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var, self, real_cov=real_cov)
-                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self)
-                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self, real_cov=real_cov)
+                self.means_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.gamma_vars[k], self.phi_var,self.weights, self, real_cov=real_cov)
+                self.sigma_star_vars[k].vi(self.z_vars, self.r_vars, self.means_vars[k], self.gamma_vars[k], self.phi_var, self.weights, self)
+                self.gamma_vars[k].vi(self.z_vars, self.r_vars, self.sigma_star_vars[k], self.means_vars[k], self.phi_var, self.weights, self, real_cov=real_cov)
 
             for i in range(self.N):
-                pass
-                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i], real_cov=real_cov) 
-                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, verbose=i<10, real_cov=real_cov)
+                self.r_vars[i].vi(self.z_vars[i], self.sigma_star_vars, self.gamma_vars, self.means_vars, self.phi_var, self.normed_embds[i], self.weights, real_cov=real_cov) 
+                self.z_vars[i].vi(self.r_vars[i], self.means_vars, self.sigma_star_vars, self.gamma_vars, self.normed_embds[i], self.phi_var, self.weights, verbose=i<10, real_cov=real_cov)
             
-            self.phi_var.vi(self.z_vars)
+            self.phi_var.vi(self.z_vars, self.weights)
         
             self.print_progress(epoch, num_els=10, real_cov=real_cov)
             
@@ -157,6 +158,10 @@ class Dataset():
                  _____________________________________________________________________
 
                     phi_probs: {self.phi_var.conc}
+
+                _____________________________________________________________________
+
+                    weights: {self.weights[:num_els]}
                   
                   
                   """)

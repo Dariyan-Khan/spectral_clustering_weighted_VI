@@ -8,7 +8,7 @@ from copy import deepcopy
 
 class R():
 
-    def __init__(self, d, alpha=None, beta=None):
+    def __init__(self, d, alpha=None, index, beta=None):
 
         if alpha is None:
             self.alpha = np.random.uniform(2, 5) # 2
@@ -26,6 +26,7 @@ class R():
         self.norm_const = self.compute_Id(order=self.d) #normalising constant for distribution
         self.first_moment = np.exp(np.log(self.compute_Id(order=self.d+1)) - np.log(self.norm_const))
         self.second_moment = np.exp(np.log(self.compute_Id(order=self.d+2)) - np.log(self.norm_const))
+        self.index = index
 
         # self.log_norm_const = self.compute_log_Id(order=self.d) # normalising constant for distribution
         # self.first_moment = np.exp(self.compute_log_Id(order=self.d+1) - self.log_norm_const)
@@ -107,7 +108,7 @@ class R():
             assert False
      
     
-    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, norm_datapoint, real_cov=None):
+    def vi(self, z_i, sigma_star_vi_list, γ_vi_list, μ_vi_list, phi_var, weights, norm_datapoint, real_cov=None):
 
         C = 0
         D = 0
@@ -125,9 +126,9 @@ class R():
             sigma_inv = jensen_approx(sigma, γ)
             sigma_inv = np.reshape(sigma_inv, (self.d+1, self.d+1))
 
-            C += z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
+            C += weights[self.index] * z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), norm_datapoint)
 
-            D_value = z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
+            D_value = weights[self.index] * z_i.probs[k] * np.matmul(np.matmul(norm_datapoint.T, sigma_inv), μ.mean)
             D_value = D_value.reshape(-1)
             D += D_value
         

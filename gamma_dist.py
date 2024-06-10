@@ -25,7 +25,7 @@ class Gamma():
         
         self.nu = None
     
-    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, datapoints, real_cov):
+    def vi(self, z_vi_list, r_vi_list, sigma_star_k, μ_k, phi_var, weights, datapoints, real_cov):
         cov_0 = real_cov
         sigma_inv_estimate = np.linalg.inv(cov_0)
 
@@ -41,7 +41,7 @@ class Gamma():
         for (i, data) in enumerate(datapoints.normed_embds):
             z = z_vi_list[i]
 
-            cov_mat_inner += z.probs[self.k] * (
+            cov_mat_inner += weights[i] * z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1]**2 - \
                 2 * r_vi_list[i].first_moment * data[self.d-1]*μ_k.mean[self.d-1] + \
                 μ_k.mean[self.d-1]**2 + \
@@ -51,7 +51,7 @@ class Gamma():
             data = data.reshape(-1, 1)
 
 
-            mean_vec += z.probs[self.k] * (
+            mean_vec += weights[i] *  z.probs[self.k] * (
                 r_vi_list[i].second_moment * data[self.d-1] * data[:self.d-1] - \
                 r_vi_list[i].first_moment * data[self.d-1] * μ_k.mean[:self.d-1] - \
                 r_vi_list[i].first_moment * data[:self.d-1] * μ_k.mean[self.d-1] + \

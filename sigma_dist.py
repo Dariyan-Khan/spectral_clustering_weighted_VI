@@ -71,7 +71,7 @@ class Sigma_Star():
             
 
 
-    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, phi_var, datapoints):
+    def vi(self, z_vi_list, r_vi_list, μ_k, γ_k, phi_var, weights, datapoints):
 
         scale_mat = copy(self.prior_scale)
         dof = copy(self.prior_dof)        
@@ -84,8 +84,8 @@ class Sigma_Star():
             if X_i_mat.size == 1:
                 X_i_mat = X_i_mat.reshape(-1)
 
-            scale_mat += z.probs[self.k] * X_i_mat
-            dof += z.probs[self.k] 
+            scale_mat += weights[i] * z.probs[self.k] * X_i_mat
+            dof += weights[i] * z.probs[self.k] 
         
 
         self.scale = scale_mat
