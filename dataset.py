@@ -457,7 +457,7 @@ if __name__ == '__main__':
                             label_file="./data_files/camera18_node_labels.csv",
                             emb_dim=4)
     
-    ds.dataset_vi(max_iter=19)
+    ds.dataset_vi(max_iter=6)
 
 
 
@@ -628,7 +628,7 @@ if __name__ == '__main__':
 
     # for i in range(max_label + 1):
     #     if ds.true_labels[ds.true_labels == i].size > 0:
-    #         groups.append( normalized_first_moments[ds.true_labels == i] * ds.normed_embds[ds.true_labels == i][:, :2])
+    #         groups.append( normalized_first_moments[ds.true_labels == i] * ds.normed_embds[ds.true_labels == i][:, 2:])
     #         group_names.append(np.unique(ds.true_names[ds.true_labels == i])[0])
 
     # # Create the plot with specific figure size
@@ -641,7 +641,7 @@ if __name__ == '__main__':
     # # Set axis labels and limits
     # ax.set_xlabel('X', fontsize=10)
     # ax.set_ylabel('Y', fontsize=10)
-    # ax.set_xlim(0, 1.4)
+    # ax.set_xlim(-2.0, 2.0)
     # ax.set_ylim(-0.9, 0.9)
 
     # # Add grid for better visibility
@@ -655,10 +655,48 @@ if __name__ == '__main__':
     # plt.tight_layout()
 
     # # Define the file path for saving the image, adjust as needed
-    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/Italy_Gov_Data/rx_i_first_two_coordss_V2.pdf', bbox_inches='tight')
+    # plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/weighted/Italy_Gov_Data/rx_i_last_two_coordss_V2.pdf', bbox_inches='tight')
 
     # # Show the plot
     # plt.show()
+
+
+    plt.rc('font', size=8)  # Default text sizes
+    plt.rc('axes', titlesize=8)  # Axes title font size
+    plt.rc('legend', fontsize=8)  # Legend font size
+    plt.rc('xtick', labelsize=10)  # X-axis tick label font size
+    plt.rc('ytick', labelsize=10)  # Y-axis tick label font size
+    plt.rcParams['mathtext.fontset'] = 'stix'
+    plt.rcParams['font.family'] = 'STIXGeneral'
+    plt.rcParams["savefig.format"] = 'pdf'
+
+    # Create the figure and axis
+    fig, ax = plt.subplots()
+
+    # Set figure dimensions in inches (1 inch = 2.54 cm)
+    fig.set_figwidth(3.15)  # Width in inches
+    fig.set_figheight(2.5)  # Height in inches
+
+    # Create the horizontal box plot
+    ax.boxplot(ds.weights, vert=False)
+
+    # Remove x-axis label
+    ax.set_xlabel("")
+
+    # Set y-axis label
+    ax.set_ylabel("Weights", fontsize=10)
+
+    # Remove any titles
+    # ax.set_title("This is a plot title")  # Remove or comment out if present
+
+    # Auto layout adjustment
+    plt.tight_layout()
+
+    # Save the figure
+    plt.savefig('/Users/dariyankhan/Library/CloudStorage/OneDrive-ImperialCollegeLondon/Work (one drive)/Imperial/year_4/M4R/images/weighted/Italy_Gov_Data/box_plot.pdf', bbox_inches='tight')
+
+    # Display the plot
+    plt.show()
 
 
 
